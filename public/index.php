@@ -96,24 +96,28 @@ $upcoming_events = array_slice($featured_events, 0, 3);
     <title>EventEase - Find & Book Events</title>
     <link rel="stylesheet" href="assets/css/style.css">
     <link rel="stylesheet" href="assets/css/homepage.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" 
+      integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" 
+      crossorigin="anonymous" 
+      referrerpolicy="no-referrer" />
 </head>
 <body>
     <!-- Navbar -->
     <nav class="navbar">
         <div class="nav-container">
             <div class="nav-brand">
-                <a href="index.php" class="logo">🎫 EventEase</a>
+                <a href="index.php" class="logo"><i class="fa-solid fa-ticket"></i> EventEase</a>
             </div>
             
             <ul class="nav-menu">
-                <li><a href="index.php" class="<?php echo $current_page == 'index.php' ? 'active' : ''; ?>">Home</a></li>
-                <li><a href="events.php">Events</a></li>
+                <li><a href="index.php" class="<?php echo $current_page == 'index.php' ? 'active' : ''; ?>"><i class="fas fa-home"></i> Home</a></li>
+                <li><a href="events.php"><i class="fas fa-calendar-alt"></i> Events</a></li>
                 <?php if (isset($_SESSION['user_id'])): ?>
-                    <li><a href="dashboard.php">Dashboard</a></li>
-                    <li><a href="logout.php" class="btn-logout">Logout</a></li>
+                    <li><a href="dashboard.php"><i class="fas fa-chart-pie"></i> Dashboard</a></li>
+                    <li><a href="logout.php" class="btn-logout"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
                 <?php else: ?>
-                    <li><a href="login.php" class="btn-login">Login</a></li>
-                    <li><a href="signup.php" class="btn-signup">Sign Up</a></li>
+                    <li><a href="login.php" class="btn-login"><i class="fas fa-sign-in-alt"></i> Login</a></li>
+                    <li><a href="signup.php" class="btn-signup"><i class="fas fa-user-plus"></i> Sign Up</a></li>
                 <?php endif; ?>
             </ul>
             
@@ -139,15 +143,15 @@ $upcoming_events = array_slice($featured_events, 0, 3);
             <div class="hero-stats">
                 <div class="stat">
                     <span class="number">500+</span>
-                    <span class="label">Events Hosted</span>
+                    <span class="label"><i class="fas fa-calendar-check"></i> Events Hosted</span>
                 </div>
                 <div class="stat">
                     <span class="number">10K+</span>
-                    <span class="label">Happy Attendees</span>
+                    <span class="label"><i class="fas fa-users"></i> Happy Attendees</span>
                 </div>
                 <div class="stat">
                     <span class="number">50+</span>
-                    <span class="label">Partner Venues</span>
+                    <span class="label"><i class="fas fa-building"></i> Partner Venues</span>
                 </div>
             </div>
         </div>
@@ -165,32 +169,32 @@ $upcoming_events = array_slice($featured_events, 0, 3);
             </div>
             <div class="category-grid">
                 <a href="events.php?category=conference" class="category-card">
-                    <span class="icon">💼</span>
+                    <span class="icon"><i class="fas fa-briefcase"></i></span>
                     <h3>Conferences</h3>
                     <p>150+ events</p>
                 </a>
                 <a href="events.php?category=concert" class="category-card">
-                    <span class="icon">🎵</span>
+                    <span class="icon"><i class="fas fa-music"></i></span>
                     <h3>Concerts</h3>
                     <p>120+ events</p>
                 </a>
                 <a href="events.php?category=workshop" class="category-card">
-                    <span class="icon">🛠️</span>
+                    <span class="icon"><i class="fas fa-tools"></i></span>
                     <h3>Workshops</h3>
                     <p>80+ events</p>
                 </a>
                 <a href="events.php?category=sports" class="category-card">
-                    <span class="icon">⚽</span>
+                    <span class="icon"><i class="fas fa-futbol"></i></span>
                     <h3>Sports</h3>
                     <p>60+ events</p>
                 </a>
                 <a href="events.php?category=charity" class="category-card">
-                    <span class="icon">❤️</span>
+                    <span class="icon"><i class="fas fa-heart"></i></span>
                     <h3>Charity</h3>
                     <p>40+ events</p>
                 </a>
                 <a href="events.php?category=exhibition" class="category-card">
-                    <span class="icon">🎨</span>
+                    <span class="icon"><i class="fas fa-palette"></i></span>
                     <h3>Exhibitions</h3>
                     <p>35+ events</p>
                 </a>
@@ -228,7 +232,7 @@ $upcoming_events = array_slice($featured_events, 0, 3);
                                     <span class="icon">📅</span> <?php echo $event['date']; ?>
                                 </span>
                                 <span class="meta-item">
-                                    <span class="icon">📍</span> <?php echo $event['city']; ?>
+                                    <span class="icon"><i class="fa-solid fa-location-dot"></i></i></span> <?php echo $event['city']; ?>
                                 </span>
                             </div>
                             <div class="event-footer">
@@ -258,7 +262,7 @@ $upcoming_events = array_slice($featured_events, 0, 3);
                         </div>
                         <div class="upcoming-info">
                             <h4><?php echo $event['title']; ?></h4>
-                            <p><span class="icon">📍</span> <?php echo $event['venue']; ?></p>
+                            <p><span class="icon"><i class="fa-solid fa-location-dot"></i></i></span> <?php echo $event['venue']; ?></p>
                             <p><span class="icon">⏰</span> <?php echo $event['time']; ?></p>
                         </div>
                         <a href="event-details.php?id=<?php echo $event['id']; ?>" class="btn-small">View</a>
@@ -277,22 +281,22 @@ $upcoming_events = array_slice($featured_events, 0, 3);
             </div>
             <div class="features-grid">
                 <div class="feature-card">
-                    <div class="feature-icon">🔍</div>
+                    <div class="feature-icon"><i class="fas fa-search-location"></i></div>
                     <h3>Easy Discovery</h3>
                     <p>Find events that match your interests with our smart search and filtering system.</p>
                 </div>
                 <div class="feature-card">
-                    <div class="feature-icon">💳</div>
+                    <div class="feature-icon"><i class="fas fa-credit-card"></i></div>
                     <h3>Secure Booking</h3>
                     <p>Book tickets safely with multiple payment options and instant confirmation.</p>
                 </div>
                 <div class="feature-card">
-                    <div class="feature-icon">📱</div>
+                    <div class="feature-icon"><i class="fas fa-mobile-alt"></i></div>
                     <h3>Mobile Friendly</h3>
                     <p>Access events and book tickets on the go with our responsive mobile design.</p>
                 </div>
                 <div class="feature-card">
-                    <div class="feature-icon">🎯</div>
+                    <div class="feature-icon"><i class="fas fa-user-cog"></i></div>
                     <h3>Personalized</h3>
                     <p>Get personalized event recommendations based on your interests and history.</p>
                 </div>
@@ -320,13 +324,13 @@ $upcoming_events = array_slice($featured_events, 0, 3);
         <div class="container">
             <div class="footer-grid">
                 <div class="footer-brand">
-                    <h3>🎫 EventEase</h3>
+                    <h3><i class="fa-solid fa-ticket"></i> EventEase</h3>
                     <p>Your trusted platform for discovering and booking amazing events.</p>
                     <div class="social-links">
-                        <a href="#" class="social-link">📱</a>
-                        <a href="#" class="social-link">🐦</a>
-                        <a href="#" class="social-link">📸</a>
-                        <a href="#" class="social-link">💼</a>
+                        <a href="#" class="social-link"><i class="fa-brands fa-facebook"></i></a>
+                        <a href="#" class="social-link"><i class="fa-brands fa-twitter"></i></a>
+                        <a href="#" class="social-link"><i class="fa-brands fa-instagram"></i></a>
+                        <a href="#" class="social-link"><i class="fa-solid fa-envelope"></i></a>
                     </div>
                 </div>
                 <div class="footer-links">

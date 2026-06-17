@@ -727,6 +727,14 @@ ul {
     .filter-section {
         top: 60px;
     }
+    .footer-grid {
+        grid-template-columns: 1fr;
+        gap: 30px;
+    }
+    
+    .features-grid {
+        grid-template-columns: 1fr 1fr;
+    }
 }
 
 @media (max-width: 576px) {
