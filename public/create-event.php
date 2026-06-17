@@ -121,12 +121,12 @@ $categories = [
                 <h1>Create New Event</h1>
                 <p>Fill in the details to create a new event</p>
             </div>
-            <a href="my-events.php" class="btn-back">← Back to My Events</a>
+            <a href="my-events.php" class="btn-back"><i class="fa-solid fa-arrow-left"></i> Back to My Events</a>
         </div>
         
         <?php if ($success): ?>
             <div class="alert alert-success">
-                ✅ Event created successfully! 
+                Event created successfully! 
                 <a href="events.php">View all events →</a>
             </div>
         <?php endif; ?>
@@ -146,7 +146,7 @@ $categories = [
             <form action="create-event.php" method="POST" enctype="multipart/form-data">
                 <!-- Basic Information Section -->
                 <div class="form-section">
-                    <h2>📋 Basic Information</h2>
+                    <h2><i class="far fa-clipboard"></i> Basic Information</h2>
                     
                     <div class="form-group">
                         <label for="title">Event Title <span class="required">*</span></label>
@@ -204,7 +204,7 @@ $categories = [
                 
                 <!-- Location Section -->
                 <div class="form-section">
-                    <h2>📍 Location Details</h2>
+                    <h2><i class="fa-solid fa-location-dot"></i> Location Details</h2>
                     
                     <div class="form-group">
                         <label for="venue">Venue <span class="required">*</span></label>
@@ -249,7 +249,7 @@ $categories = [
                 
                 <!-- Date & Time Section -->
                 <div class="form-section">
-                    <h2>📅 Date & Time</h2>
+                    <h2><i class="far fa-calendar-alt"></i> Date & Time</h2>
                     
                     <div class="form-row">
                         <div class="form-group">
@@ -278,7 +278,7 @@ $categories = [
                 
                 <!-- Tickets & Pricing Section -->
                 <div class="form-section">
-                    <h2>🎟️ Tickets & Pricing</h2>
+                    <h2><i class="fas fa-ticket-alt"></i> Tickets & Pricing</h2>
                     
                     <div class="form-row">
                         <div class="form-group">
@@ -315,7 +315,7 @@ $categories = [
                 
                 <!-- Event Image Section -->
                 <div class="form-section">
-                    <h2>🖼️ Event Image</h2>
+                    <h2><i class="far fa-image"></i> Event Image</h2>
                     
                     <div class="form-group">
                         <label for="event_image">Upload Event Banner</label>
@@ -333,7 +333,7 @@ $categories = [
                 
                 <!-- Form Actions -->
                 <div class="form-actions">
-                    <button type="submit" class="btn btn-primary">✅ Create Event</button>
+                    <button type="submit" class="btn btn-primary"> Create Event</button>
                     <a href="events.php" class="btn btn-secondary">Cancel</a>
                 </div>
             </form>

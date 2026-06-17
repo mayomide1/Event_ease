@@ -39,7 +39,7 @@ if (!isset($_SESSION['user_id'])) {
                 <h1>My Events</h1>
                 <p>Manage all your events in one place</p>
             </div>
-            <a href="create-event.php" class="btn-create">➕ Create New Event</a>
+            <a href="create-event.php" class="btn-create"><i class="fa-solid fa-plus"></i> Create New Event</a>
         </div>
         
         <div class="events-grid">
@@ -53,16 +53,16 @@ if (!isset($_SESSION['user_id'])) {
                     <h3>Tech Conference 2026</h3>
                     <p class="event-description">Join us for the biggest tech conference of the year...</p>
                     <div class="event-meta">
-                        <span class="meta-item">📅 Jun 20, 2026</span>
-                        <span class="meta-item">📍 Lagos</span>
+                        <span class="meta-item"><i class="far fa-calendar-alt"></i> Jun 20, 2026</span>
+                        <span class="meta-item"><i class="fa-solid fa-location-dot"></i> Lagos</span>
                     </div>
                     <div class="event-stats">
-                        <span>🎟️ 45/100 sold</span>
-                        <span>💰 ₦5,000</span>
+                        <span><i class="fas fa-ticket-alt"></i> 45/100 sold</span>
+                        <span><i class="fa-solid fa-sack-dollar"></i> ₦5,000</span>
                     </div>
                     <div class="event-actions">
                         <a href="event-details.php?id=1" class="btn-view">View Details</a>
-                        <a href="edit-event.php?id=1" class="btn-edit">✏️ Edit</a>
+                        <a href="edit-event.php?id=1" class="btn-edit"><i class="fa-solid fa-file-pen"></i> Edit</a>
                     </div>
                 </div>
             </div>
@@ -77,16 +77,16 @@ if (!isset($_SESSION['user_id'])) {
                     <h3>Music Festival 2026</h3>
                     <p class="event-description">A night of amazing music and entertainment...</p>
                     <div class="event-meta">
-                        <span class="meta-item">📅 Jul 15, 2026</span>
-                        <span class="meta-item">📍 Abuja</span>
+                        <span class="meta-item"><i class="far fa-calendar-alt"></i> Jul 15, 2026</span>
+                        <span class="meta-item"><i class="fa-solid fa-location-dot"></i> Abuja</span>
                     </div>
                     <div class="event-stats">
-                        <span>🎟️ 0/500 sold</span>
-                        <span>💰 Free</span>
+                        <span><i class="fas fa-ticket-alt"></i> 0/500 sold</span>
+                        <span><i class="fa-solid fa-sack-dollar"></i> Free</span>
                     </div>
                     <div class="event-actions">
                         <a href="event-details.php?id=2" class="btn-view">View Details</a>
-                        <a href="edit-event.php?id=2" class="btn-edit">✏️ Edit</a>
+                        <a href="edit-event.php?id=2" class="btn-edit"><i class="fa-solid fa-file-pen"></i> Edit</a>
                     </div>
                 </div>
             </div>

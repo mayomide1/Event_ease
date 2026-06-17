@@ -25,8 +25,8 @@
 }
 
 .btn-back {
-    background: #f0f0f0;
-    color: #555;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: #fff;
     padding: 10px 20px;
     border-radius: 8px;
     text-decoration: none;

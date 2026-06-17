@@ -27,7 +27,7 @@ if (!isset($_SESSION['user_id'])) {
         <div class="main-content">
             <div class="header">
                 <h1>Dashboard</h1>
-                <p>👋Welcome back, <?php echo $_SESSION['user_name'] ?? 'User'; ?>! </p>
+                <p><i class="fa-regular fa-hand-spock"></i> Welcome back, <?php echo $_SESSION['user_name'] ?? 'User'; ?>! </p>
             </div>
             
             <div class="stats-grid">

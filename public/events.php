@@ -148,12 +148,9 @@ $paginated_events = array_slice($filtered_events, $offset, $events_per_page);
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo $selected_category ? ucfirst($selected_category) . ' Events' : 'All Events'; ?> - EventEase</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="stylesheet" href="assets/css/style.css">
     <link rel="stylesheet" href="assets/css/events.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" 
-      integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" 
-      crossorigin="anonymous" 
-      referrerpolicy="no-referrer" />
 </head>
 <body>
     <!-- Navbar -->
@@ -235,10 +232,10 @@ $paginated_events = array_slice($filtered_events, $offset, $events_per_page);
                                 <p class="event-description"><?php echo substr($event['description'], 0, 80) . '...'; ?></p>
                                 <div class="event-meta">
                                     <span class="meta-item">
-                                        <span class="icon">📅</span> <?php echo $event['date']; ?>
+                                        <span class="icon"><i class="fas fa-calendar-alt"></i> </span> <?php echo $event['date']; ?>
                                     </span>
                                     <span class="meta-item">
-                                        <span class="icon">📍</span> <?php echo $event['city']; ?>
+                                        <span class="icon"><i class="fa-solid fa-location-dot"></i></span> <?php echo $event['city']; ?>
                                     </span>
                                 </div>
                                 <div class="event-organizer">
@@ -246,7 +243,7 @@ $paginated_events = array_slice($filtered_events, $offset, $events_per_page);
                                     <span class="organizer-name"><?php echo $event['organizer']; ?></span>
                                 </div>
                                 <div class="event-footer">
-                                    <span class="tickets-available">🎟️ <?php echo $event['available_tickets']; ?> left</span>
+                                    <span class="tickets-available"><i class="fas fa-ticket-alt"></i>  <?php echo $event['available_tickets']; ?> left</span>
                                     <a href="event-details.php?id=<?php echo $event['id']; ?>" class="btn-book">Book Now</a>
                                 </div>
                             </div>
@@ -289,7 +286,7 @@ $paginated_events = array_slice($filtered_events, $offset, $events_per_page);
         <div class="container">
             <div class="footer-grid">
                 <div class="footer-brand">
-                    <h3>🎫 EventEase</h3>
+                    <h3><i class="fa-solid fa-ticket"></i> EventEase</h3>
                     <p>Your trusted platform for discovering and booking amazing events.</p>
                     <div class="social-links">
                         <a href="#" class="social-link"><i class="fa-brands fa-facebook"></i></a>
@@ -325,7 +322,7 @@ $paginated_events = array_slice($filtered_events, $offset, $events_per_page);
                 </div>
             </div>
             <div class="footer-bottom">
-                <p>&copy; <?php echo date('Y'); ?> EventEase. All rights reserved. | Made with ❤️ for campus events</p>
+                <p>&copy; <?php echo date('Y'); ?> EventEase. All rights reserved.</p>
             </div>
         </div>
     </footer>
