@@ -1,11 +1,5 @@
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
-
 .sidebar {
-    width: 250px;
+    width: 20%;
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: white;
     padding: 30px 20px;
@@ -52,6 +46,6 @@
 
 @media (max-width: 768px){
     .sidebar{
-        display: none;
+       margin-top: 70px;
     }
 }

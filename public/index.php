@@ -1,5 +1,5 @@
 <?php
-session_start();
+session_start(); 
 
 // Get current page for active state
 $current_page = basename($_SERVER['PHP_SELF']);
@@ -94,40 +94,16 @@ $upcoming_events = array_slice($featured_events, 0, 3);
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>EventEase - Find & Book Events</title>
-    <link rel="stylesheet" href="assets/css/style.css">
     <link rel="stylesheet" href="assets/css/homepage.css">
+    <link rel="stylesheet" href="assets/css/footer.css">
+    <link rel="stylesheet" href="assets/css/navbar.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" 
       integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" 
       crossorigin="anonymous" 
       referrerpolicy="no-referrer" />
 </head>
 <body>
-    <!-- Navbar -->
-    <nav class="navbar">
-        <div class="nav-container">
-            <div class="nav-brand">
-                <a href="index.php" class="logo"><i class="fa-solid fa-ticket"></i> EventEase</a>
-            </div>
-            
-            <ul class="nav-menu">
-                <li><a href="index.php" class="<?php echo $current_page == 'index.php' ? 'active' : ''; ?>"><i class="fas fa-home"></i> Home</a></li>
-                <li><a href="events.php"><i class="fas fa-calendar-alt"></i> Events</a></li>
-                <?php if (isset($_SESSION['user_id'])): ?>
-                    <li><a href="dashboard.php"><i class="fas fa-chart-pie"></i> Dashboard</a></li>
-                    <li><a href="logout.php" class="btn-logout"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
-                <?php else: ?>
-                    <li><a href="login.php" class="btn-login"><i class="fas fa-sign-in-alt"></i> Login</a></li>
-                    <li><a href="signup.php" class="btn-signup"><i class="fas fa-user-plus"></i> Sign Up</a></li>
-                <?php endif; ?>
-            </ul>
-            
-            <div class="hamburger">
-                <span></span>
-                <span></span>
-                <span></span>
-            </div>
-        </div>
-    </nav>
+    <?php include 'navbar.php'; ?>
 
     <!-- Hero Section -->
     <section class="hero">
@@ -328,52 +304,7 @@ $upcoming_events = array_slice($featured_events, 0, 3);
         </div>
     </section>
 
-    <!-- Footer -->
-    <footer class="footer">
-        <div class="container">
-            <div class="footer-grid">
-                <div class="footer-brand">
-                    <h3><i class="fa-solid fa-ticket"></i> EventEase</h3>
-                    <p>Your trusted platform for discovering and booking amazing events.</p>
-                    <div class="social-links">
-                        <a href="#" class="social-link"><i class="fa-brands fa-facebook"></i></a>
-                        <a href="#" class="social-link"><i class="fa-brands fa-twitter"></i></a>
-                        <a href="#" class="social-link"><i class="fa-brands fa-instagram"></i></a>
-                        <a href="#" class="social-link"><i class="fa-solid fa-envelope"></i></a>
-                    </div>
-                </div>
-                <div class="footer-links">
-                    <h4>Quick Links</h4>
-                    <ul>
-                        <li><a href="index.php">Home</a></li>
-                        <li><a href="events.php">Events</a></li>
-                        <li><a href="about.php">About Us</a></li>
-                        <li><a href="contact.php">Contact</a></li>
-                    </ul>
-                </div>
-                <div class="footer-links">
-                    <h4>Support</h4>
-                    <ul>
-                        <li><a href="faq.php">FAQ</a></li>
-                        <li><a href="help.php">Help Center</a></li>
-                        <li><a href="terms.php">Terms of Service</a></li>
-                        <li><a href="privacy.php">Privacy Policy</a></li>
-                    </ul>
-                </div>
-                <div class="footer-newsletter">
-                    <h4>Stay Updated</h4>
-                    <p>Subscribe to get updates on new events</p>
-                    <form action="subscribe.php" method="POST" class="newsletter-form">
-                        <input type="email" name="email" placeholder="Enter your email" required>
-                        <button type="submit">Subscribe</button>
-                    </form>
-                </div>
-            </div>
-            <div class="footer-bottom">
-                <p>&copy; <?php echo date('Y'); ?> EventEase. All rights reserved.</p>
-            </div>
-        </div>
-    </footer>
+    <?php include 'footer.php';?>
 
     <script>
         document.querySelector('.hamburger').addEventListener('click', function() {

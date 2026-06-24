@@ -1,0 +1,251 @@
+/* ===== BOOKINGS PAGE SPECIFIC STYLES ===== */
+
+/* ----- Stats Cards (override dashboard stats if needed) ----- */
+.booking-stats .stat-card {
+    background: white;
+    padding: 25px;
+    border-radius: 12px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    transition: transform 0.3s ease;
+    text-align: center;
+}
+
+.booking-stats .stat-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+}
+
+.booking-stats .stat-card h3 {
+    color: #666;
+    font-size: 14px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 8px;
+}
+
+.booking-stats .stat-card p {
+    font-size: 32px;
+    font-weight: 700;
+    color: #667eea;
+    margin: 0;
+}
+
+.booking-stats .stat-card .stat-icon {
+    font-size: 28px;
+    color: #667eea;
+    opacity: 0.7;
+    margin-bottom: 8px;
+    display: block;
+}
+
+/* ----- Table Container ----- */
+.table-responsive {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    margin-top: 5px;
+}
+
+/* ----- Bookings Table ----- */
+.booking-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+}
+
+.booking-table thead {
+    background: #f8f9fa;
+}
+
+.booking-table th {
+    text-align: left;
+    padding: 14px 16px;
+    color: #555;
+    font-weight: 600;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    border-bottom: 2px solid #eee;
+}
+
+.booking-table td {
+    padding: 14px 16px;
+    border-bottom: 1px solid #f0f0f0;
+    color: #333;
+    vertical-align: middle;
+}
+
+.booking-table tbody tr {
+    transition: background 0.2s ease;
+}
+
+.booking-table tbody tr:hover {
+    background: #f8faff;
+}
+
+.booking-table .event-title {
+    font-weight: 600;
+    color: #333;
+}
+
+.booking-table .event-date {
+    display: block;
+    font-size: 12px;
+    color: #888;
+    margin-top: 2px;
+}
+
+.booking-table .customer-name {
+    font-weight: 500;
+}
+
+.booking-table .customer-email {
+    display: block;
+    font-size: 12px;
+    color: #888;
+    margin-top: 2px;
+}
+
+.booking-table .tickets-count {
+    font-weight: 600;
+    color: #667eea;
+}
+
+.booking-table .total-amount {
+    font-weight: 600;
+    color: #333;
+}
+
+/* ----- Status Badges ----- */
+.status-badge {
+    display: inline-block;
+    padding: 4px 14px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: capitalize;
+    letter-spacing: 0.3px;
+}
+
+.status-badge.confirmed {
+    background: #d4edda;
+    color: #155724;
+}
+
+.status-badge.pending {
+    background: #fff3cd;
+    color: #856404;
+}
+
+.status-badge.cancelled {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+.status-badge.completed {
+    background: #cce5ff;
+    color: #004085;
+}
+
+/* ----- Action Buttons ----- */
+.btn-view {
+    background: #667eea;
+    color: white;
+    padding: 5px 14px;
+    border-radius: 5px;
+    text-decoration: none;
+    font-size: 12px;
+    transition: background 0.3s ease;
+    display: inline-block;
+    margin-right: 4px;
+}
+
+.btn-view:hover {
+    background: #764ba2;
+}
+
+.btn-confirm {
+    background: #28a745;
+    color: white;
+    padding: 5px 14px;
+    border-radius: 5px;
+    text-decoration: none;
+    font-size: 12px;
+    transition: background 0.3s ease;
+    display: inline-block;
+}
+
+.btn-confirm:hover {
+    background: #1e7e34;
+}
+
+.btn-cancel {
+    background: #dc3545;
+    color: white;
+    padding: 5px 14px;
+    border-radius: 5px;
+    text-decoration: none;
+    font-size: 12px;
+    transition: background 0.3s ease;
+    display: inline-block;
+}
+
+.btn-cancel:hover {
+    background: #c82333;
+}
+
+/* ----- Responsive ----- */
+@media (max-width: 768px) {
+    .booking-stats {
+        grid-template-columns: 1fr 1fr !important;
+    }
+
+    .booking-table th,
+    .booking-table td {
+        padding: 10px 12px;
+        font-size: 13px;
+    }
+
+    .booking-table .event-date,
+    .booking-table .customer-email {
+        font-size: 11px;
+    }
+
+    .btn-view,
+    .btn-confirm,
+    .btn-cancel {
+        padding: 4px 10px;
+        font-size: 11px;
+    }
+}
+
+@media (max-width: 576px) {
+    .booking-stats {
+        grid-template-columns: 1fr !important;
+    }
+
+    .booking-table {
+        font-size: 12px;
+    }
+
+    .booking-table th,
+    .booking-table td {
+        padding: 8px 10px;
+    }
+
+    .booking-table .event-title {
+        font-size: 13px;
+    }
+
+    .booking-table .tickets-count,
+    .booking-table .total-amount {
+        font-size: 13px;
+    }
+
+    /* Stack actions on small screens */
+    .booking-table td:last-child {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+    }
+}
