@@ -1,5 +1,6 @@
 <?php
 session_start();
+require_once __DIR__ . '/../config/database.php';
 
 // Check if user is logged in
 if (!isset($_SESSION['user_id'])) {
@@ -8,69 +9,47 @@ if (!isset($_SESSION['user_id'])) {
     exit();
 }
 
-// Dummy bookings data (will be replaced with database later)
-$bookings = [
-    [
-        'id' => 1,
-        'event_title' => 'Tech Conference 2026',
-        'event_date' => 'June 20, 2026',
-        'tickets' => 3,
-        'total_amount' => '₦45,000',
-        'status' => 'confirmed',
-        'booking_date' => 'June 1, 2026',
-        'customer' => 'John Doe',
-        'customer_email' => 'john@example.com',
-        'payment_method' => 'Card'
-    ],
-    [
-        'id' => 2,
-        'event_title' => 'Music Festival 2026',
-        'event_date' => 'July 15, 2026',
-        'tickets' => 2,
-        'total_amount' => '₦50,000',
-        'status' => 'pending',
-        'booking_date' => 'June 5, 2026',
-        'customer' => 'Jane Smith',
-        'customer_email' => 'jane@example.com',
-        'payment_method' => 'Bank Transfer'
-    ],
-    [
-        'id' => 3,
-        'event_title' => 'Entrepreneurship Workshop',
-        'event_date' => 'August 5, 2026',
-        'tickets' => 1,
-        'total_amount' => '₦10,000',
-        'status' => 'cancelled',
-        'booking_date' => 'June 10, 2026',
-        'customer' => 'Samuel Ade',
-        'customer_email' => 'sam@example.com',
-        'payment_method' => 'Paystack'
-    ],
-    [
-        'id' => 4,
-        'event_title' => 'Charity Gala Night',
-        'event_date' => 'September 10, 2026',
-        'tickets' => 5,
-        'total_amount' => '₦0',
-        'status' => 'confirmed',
-        'booking_date' => 'June 15, 2026',
-        'customer' => 'Chioma Okafor',
-        'customer_email' => 'chioma@example.com',
-        'payment_method' => 'Free'
-    ],
-    [
-        'id' => 5,
-        'event_title' => 'Sports Tournament',
-        'event_date' => 'October 2, 2026',
-        'tickets' => 10,
-        'total_amount' => '₦50,000',
-        'status' => 'completed',
-        'booking_date' => 'June 20, 2026',
-        'customer' => 'Kunle Bakare',
-        'customer_email' => 'kunle@example.com',
-        'payment_method' => 'Card'
-    ]
-];
+// Ensure only organizers/admins can access
+if (!in_array($_SESSION['user_role'], ['organizer', 'admin'])) {
+    $_SESSION['error'] = "Access denied.";
+    header('Location: browse.php');
+    exit();
+}
+
+$user_id = $_SESSION['user_id'];
+$db = Database::getConnection();
+
+// ----- Fetch bookings for organizer's events -----
+$sql = "
+    SELECT b.*, 
+           e.title as event_title, 
+           e.start_date as event_date,
+           u.name as customer_name,
+           u.email as customer_email,
+           u.phone as customer_phone
+    FROM bookings b
+    JOIN events e ON b.event_id = e.id
+    JOIN users u ON b.user_id = u.id
+    WHERE e.organizer_id = ?
+    ORDER BY b.created_at DESC
+";
+$stmt = $db->prepare($sql);
+$stmt->execute([$user_id]);
+$bookings = $stmt->fetchAll();
+
+// ----- Calculate stats -----
+$total_bookings = count($bookings);
+$confirmed = count(array_filter($bookings, fn($b) => $b['status'] === 'confirmed'));
+$pending = count(array_filter($bookings, fn($b) => $b['status'] === 'pending'));
+
+// Revenue: sum of total_amount for confirmed bookings
+$revenue = 0;
+foreach ($bookings as $b) {
+    if ($b['status'] === 'confirmed') {
+        $revenue += (float)$b['total_amount'];
+    }
+}
+$revenue_formatted = '₦' . number_format($revenue, 2);
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -109,19 +88,19 @@ $bookings = [
             <div class="stats-grid">
                 <div class="stat-card">
                     <h3>Total Bookings</h3>
-                    <p><?php echo count($bookings); ?></p>
+                    <p><?php echo $total_bookings; ?></p>
                 </div>
                 <div class="stat-card">
                     <h3>Confirmed</h3>
-                    <p><?php echo count(array_filter($bookings, fn($b) => $b['status'] === 'confirmed')); ?></p>
+                    <p><?php echo $confirmed; ?></p>
                 </div>
                 <div class="stat-card">
                     <h3>Pending</h3>
-                    <p><?php echo count(array_filter($bookings, fn($b) => $b['status'] === 'pending')); ?></p>
+                    <p><?php echo $pending; ?></p>
                 </div>
                 <div class="stat-card">
                     <h3>Revenue</h3>
-                    <p>₦155,000</p>
+                    <p><?php echo $revenue_formatted; ?></p>
                 </div>
             </div>
 
@@ -137,38 +116,51 @@ $bookings = [
                                 <th>Customer</th>
                                 <th>Tickets</th>
                                 <th>Total</th>
-                                <th>Date</th>
+                                <th>Booking Date</th>
                                 <th>Status</th>
                                 <th>Action</th>
                             </tr>
                         </thead>
                         <tbody>
-                            <?php foreach ($bookings as $index => $booking): ?>
-                            <tr>
-                                <td><?php echo $index + 1; ?></td>
-                                <td><strong><?php echo $booking['event_title']; ?></strong><br>
-                                    <small><?php echo $booking['event_date']; ?></small>
-                                </td>
-                                <td>
-                                    <?php echo $booking['customer']; ?><br>
-                                    <small><?php echo $booking['customer_email']; ?></small>
-                                </td>
-                                <td><?php echo $booking['tickets']; ?></td>
-                                <td><?php echo $booking['total_amount']; ?></td>
-                                <td><?php echo $booking['booking_date']; ?></td>
-                                <td>
-                                    <span class="status <?php echo $booking['status']; ?>">
-                                        <?php echo ucfirst($booking['status']); ?>
-                                    </span>
-                                </td>
-                                <td>
-                                    <a href="#" class="btn-small">View</a>
-                                    <?php if ($booking['status'] === 'pending'): ?>
-                                        <a href="#" class="btn-small btn-confirm">Confirm</a>
-                                    <?php endif; ?>
-                                </td>
-                            </tr>
-                            <?php endforeach; ?>
+                            <?php if (count($bookings) > 0): ?>
+                                <?php foreach ($bookings as $index => $booking): ?>
+                                <tr>
+                                    <td><?php echo $index + 1; ?></td>
+                                    <td>
+                                        <strong><?php echo htmlspecialchars($booking['event_title']); ?></strong><br>
+                                        <small><?php echo date('M d, Y', strtotime($booking['event_date'])); ?></small>
+                                    </td>
+                                    <td>
+                                        <?php echo htmlspecialchars($booking['customer_name']); ?><br>
+                                        <small><?php echo htmlspecialchars($booking['customer_email']); ?></small>
+                                    </td>
+                                    <td><?php echo $booking['ticket_quantity']; ?></td>
+                                    <td><?php echo $booking['total_amount'] == 0 ? 'Free' : '₦' . number_format($booking['total_amount'], 2); ?></td>
+                                    <td><?php echo date('M d, Y', strtotime($booking['created_at'])); ?></td>
+                                    <td>
+                                        <span class="status <?php echo $booking['status']; ?>">
+                                            <?php echo ucfirst($booking['status']); ?>
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <a href="#" class="btn-small">View</a>
+                                        <?php if ($booking['status'] === 'pending'): ?>
+                                            <a href="confirm-booking.php?id=<?php echo $booking['id']; ?>" class="btn-small btn-confirm" onclick="return confirm('Are you sure you want to confirm this booking?');">
+                                                Confirm</a>
+                                        <?php endif; ?>
+                                        <!-- Delete button (with confirmation) -->
+                                        <?php if ($booking['status'] !== 'confirmed' || true): // Optional: restrict delete to non-confirmed ?>
+                                            <a href="delete-booking.php?id=<?php echo $booking['id']; ?>" class="btn-small btn-danger" onclick="return confirm('Are you sure you want to delete this booking? This action cannot be undone.');">
+                                                Delete</a>
+                                        <?php endif; ?>
+                                    </td>
+                                </tr>
+                                <?php endforeach; ?>
+                            <?php else: ?>
+                                <tr>
+                                    <td colspan="8" style="text-align:center; padding: 30px;">No bookings yet for your events.</td>
+                                </tr>
+                            <?php endif; ?>
                         </tbody>
                     </table>
                 </div>
@@ -183,7 +175,6 @@ $bookings = [
             const overlay = document.getElementById('sidebarOverlay');
             const mainContent = document.getElementById('mainContent');
 
-            // Ensure elements exist
             if (!sidebar || !hamburgerBtn || !overlay) {
                 console.error('Required elements not found!');
                 return;

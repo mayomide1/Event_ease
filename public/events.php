@@ -3,13 +3,40 @@ session_start();
 require_once __DIR__ . '/../config/database.php';
 
 $current_page = basename($_SERVER['PHP_SELF']);
-
-// Get category filter from URL
 $selected_category = isset($_GET['category']) ? $_GET['category'] : '';
 
 $db = Database::getConnection();
 
-// ---------- Build the base query for published events ----------
+// ---------- Build the WHERE clause ----------
+$where = "WHERE e.status = 'published'";
+$params = [];
+
+if ($selected_category) {
+    $where .= " AND c.slug = :category";
+    $params[':category'] = $selected_category;
+}
+
+// ---------- Count total events (for pagination) ----------
+$count_sql = "
+    SELECT COUNT(*) as total
+    FROM events e
+    LEFT JOIN categories c ON e.category_id = c.id
+    LEFT JOIN users u ON e.organizer_id = u.id
+    $where
+";
+$stmt = $db->prepare($count_sql);
+foreach ($params as $key => $value) {
+    $stmt->bindValue($key, $value);
+}
+$stmt->execute();
+$total_events = $stmt->fetch()['total'] ?? 0;
+$total_pages = ceil($total_events / 6);
+
+$current_page_num = isset($_GET['page']) ? (int)$_GET['page'] : 1;
+$current_page_num = max(1, min($current_page_num, $total_pages));
+$offset = ($current_page_num - 1) * 6;
+
+// ---------- Main query with pagination ----------
 $sql = "
     SELECT e.*, 
            c.name as category_name, 
@@ -18,50 +45,25 @@ $sql = "
     FROM events e
     LEFT JOIN categories c ON e.category_id = c.id
     LEFT JOIN users u ON e.organizer_id = u.id
-    WHERE e.status = 'published'
+    $where
+    ORDER BY e.start_date ASC
+    LIMIT :limit OFFSET :offset
 ";
-$params = [];
+$params[':limit'] = 6;
+$params[':offset'] = $offset;
 
-// Apply category filter
-if ($selected_category) {
-    $sql .= " AND c.slug = ?";
-    $params[] = $selected_category;
-}
-
-// Order by start date (upcoming first)
-$sql .= " ORDER BY e.start_date ASC";
-
-// ---------- Pagination ----------
-$events_per_page = 6;
-
-// Get total count for pagination
-$count_sql = str_replace("SELECT e.*, c.name as category_name, c.slug as category_slug, u.name as organizer_name", "SELECT COUNT(*) as total", $sql);
-$stmt = $db->prepare($count_sql);
-$stmt->execute($params);
-$total_events = $stmt->fetch()['total'] ?? 0;
-$total_pages = ceil($total_events / $events_per_page);
-
-$current_page_num = isset($_GET['page']) ? (int)$_GET['page'] : 1;
-$current_page_num = max(1, min($current_page_num, $total_pages));
-$offset = ($current_page_num - 1) * $events_per_page;
-
-// Add LIMIT and OFFSET with proper integer binding
-$sql .= " LIMIT :limit OFFSET :offset";
-
-// Execute query with proper integer binding
 $stmt = $db->prepare($sql);
-
-// Bind the category parameter if it exists
 foreach ($params as $key => $value) {
-    $stmt->bindValue($key + 1, $value);
+    if ($key === ':limit' || $key === ':offset') {
+        $stmt->bindValue($key, $value, PDO::PARAM_INT);
+    } else {
+        $stmt->bindValue($key, $value);
+    }
 }
-
-$stmt->bindValue(':limit', $events_per_page, PDO::PARAM_INT);
-$stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
 $stmt->execute();
 $events = $stmt->fetchAll();
 
-// Get all categories (for filter buttons)
+// ---------- Get categories with published events ----------
 $cat_stmt = $db->query("
     SELECT DISTINCT c.id, c.name, c.slug
     FROM categories c

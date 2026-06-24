@@ -147,6 +147,15 @@
     color: #004085;
 }
 
+.btn-danger {
+    background: #dc3545;
+    color: white;
+}
+
+.btn-danger:hover {
+    background: #c82333;
+}
+
 /* ----- Action Buttons ----- */
 .btn-view {
     background: #667eea;

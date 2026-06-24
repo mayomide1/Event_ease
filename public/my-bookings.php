@@ -1,5 +1,6 @@
 <?php
 session_start();
+require_once __DIR__ . '/../config/database.php';
 
 // Check if user is logged in
 if (!isset($_SESSION['user_id'])) {
@@ -8,57 +9,41 @@ if (!isset($_SESSION['user_id'])) {
     exit();
 }
 
-// Check if user is an organizer (redirect if they are)
+// If user is an organizer, redirect to dashboard
 if (isset($_SESSION['user_role']) && $_SESSION['user_role'] == 'organizer') {
     header('Location: dashboard.php');
     exit();
 }
 
-// Sample bookings data (will be replaced with database later)
-$my_bookings = [
-    [
-        'id' => 1,
-        'event_title' => 'Tech Conference 2026',
-        'event_date' => 'June 20, 2026',
-        'event_time' => '9:00 AM - 6:00 PM',
-        'venue' => 'Lagos Convention Center',
-        'city' => 'Lagos',
-        'tickets' => 2,
-        'total_amount' => '₦30,000',
-        'status' => 'confirmed',
-        'booking_date' => 'June 1, 2026',
-        'ticket_code' => 'TCK-2026-001',
-        'image' => 'tech-conference.jpg'
-    ],
-    [
-        'id' => 2,
-        'event_title' => 'Music Festival 2026',
-        'event_date' => 'July 15, 2026',
-        'event_time' => '4:00 PM - 11:59 PM',
-        'venue' => 'Eko Atlantic City',
-        'city' => 'Lagos',
-        'tickets' => 3,
-        'total_amount' => '₦75,000',
-        'status' => 'pending',
-        'booking_date' => 'June 5, 2026',
-        'ticket_code' => 'TCK-2026-002',
-        'image' => 'music-festival.jpg'
-    ],
-    [
-        'id' => 3,
-        'event_title' => 'Entrepreneurship Workshop',
-        'event_date' => 'August 5, 2026',
-        'event_time' => '10:00 AM - 4:00 PM',
-        'venue' => 'Business Hub',
-        'city' => 'Abuja',
-        'tickets' => 1,
-        'total_amount' => '₦10,000',
-        'status' => 'cancelled',
-        'booking_date' => 'June 10, 2026',
-        'ticket_code' => 'TCK-2026-003',
-        'image' => 'workshop.jpg'
-    ]
-];
+$user_id = $_SESSION['user_id'];
+$db = Database::getConnection();
+
+// Fetch bookings for this user with event details
+$stmt = $db->prepare("
+    SELECT 
+        b.*, 
+        e.title as event_title, 
+        e.start_date, 
+        e.end_date, 
+        e.venue, 
+        e.city, 
+        e.image,
+        e.description
+    FROM bookings b
+    JOIN events e ON b.event_id = e.id
+    WHERE b.user_id = ?
+    ORDER BY b.created_at DESC
+");
+$stmt->execute([$user_id]);
+$my_bookings = $stmt->fetchAll();
+
+// Helper function to format date/time
+function formatBookingDate($datetime) {
+    return date('F j, Y', strtotime($datetime));
+}
+function formatBookingTime($start, $end) {
+    return date('g:i A', strtotime($start)) . ' - ' . date('g:i A', strtotime($end));
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -66,10 +51,9 @@ $my_bookings = [
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>My Bookings - EventEase</title>
-    <!-- Layout CSS (dashboard) -->
+    <!-- Layout CSS -->
     <link rel="stylesheet" href="assets/css/dashboard.css">
     <link rel="stylesheet" href="assets/css/sidebar.css">
-    <!-- Specific bookings styles -->
     <link rel="stylesheet" href="assets/css/my-bookings.css">
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" 
@@ -92,7 +76,7 @@ $my_bookings = [
 
         <!-- Main Content -->
         <div class="main-content" id="mainContent">
-            <!-- Header (matches dashboard) -->
+            <!-- Header -->
             <div class="header">
                 <h1><i class="fas fa-ticket-alt"></i> My Bookings</h1>
                 <p>View and manage all your event bookings</p>
@@ -105,47 +89,47 @@ $my_bookings = [
                         <?php foreach ($my_bookings as $booking): ?>
                             <div class="booking-card">
                                 <div class="booking-image">
-                                    <img src="assets/images/events/<?php echo $booking['image']; ?>" 
-                                         alt="<?php echo $booking['event_title']; ?>"
+                                    <img src="assets/images/events/<?php echo htmlspecialchars($booking['image'] ?? 'placeholder.jpg'); ?>" 
+                                         alt="<?php echo htmlspecialchars($booking['event_title']); ?>"
                                          onerror="this.src='assets/images/event-placeholder.jpg'">
                                     <span class="booking-status <?php echo $booking['status']; ?>">
                                         <?php echo ucfirst($booking['status']); ?>
                                     </span>
                                 </div>
                                 <div class="booking-body">
-                                    <h3><?php echo $booking['event_title']; ?></h3>
+                                    <h3><?php echo htmlspecialchars($booking['event_title']); ?></h3>
                                     <div class="booking-details">
                                         <div class="detail-row">
                                             <i class="fas fa-calendar-day"></i>
-                                            <span><?php echo $booking['event_date']; ?></span>
+                                            <span><?php echo formatBookingDate($booking['start_date']); ?></span>
                                         </div>
                                         <div class="detail-row">
                                             <i class="fas fa-clock"></i>
-                                            <span><?php echo $booking['event_time']; ?></span>
+                                            <span><?php echo formatBookingTime($booking['start_date'], $booking['end_date']); ?></span>
                                         </div>
                                         <div class="detail-row">
                                             <i class="fas fa-map-marker-alt"></i>
-                                            <span><?php echo $booking['venue'] . ', ' . $booking['city']; ?></span>
+                                            <span><?php echo htmlspecialchars($booking['venue'] . ', ' . $booking['city']); ?></span>
                                         </div>
                                         <div class="detail-row">
                                             <i class="fas fa-ticket-alt"></i>
-                                            <span><?php echo $booking['tickets']; ?> tickets</span>
+                                            <span><?php echo $booking['ticket_quantity']; ?> tickets</span>
                                         </div>
                                         <div class="detail-row">
                                             <i class="fas fa-money-bill-wave"></i>
-                                            <span><?php echo $booking['total_amount']; ?></span>
+                                            <span><?php echo $booking['total_amount'] == 0 ? 'Free' : '₦' . number_format($booking['total_amount'], 2); ?></span>
                                         </div>
                                         <div class="detail-row">
                                             <i class="fas fa-barcode"></i>
-                                            <span><strong>Code:</strong> <?php echo $booking['ticket_code']; ?></span>
+                                            <span><strong>Ref:</strong> <?php echo htmlspecialchars($booking['booking_reference']); ?></span>
                                         </div>
                                     </div>
                                     <div class="booking-actions">
-                                        <a href="event-details.php?id=<?php echo $booking['id']; ?>" class="btn-view-event">
+                                        <a href="event-details.php?id=<?php echo $booking['event_id']; ?>" class="btn-view-event">
                                             <i class="fas fa-eye"></i> View Event
                                         </a>
                                         <?php if ($booking['status'] == 'confirmed'): ?>
-                                            <a href="download-ticket.php?id=<?php echo $booking['id']; ?>" class="btn-download">
+                                            <a href="download-ticket.php?ref=<?php echo $booking['booking_reference']; ?>" class="btn-download">
                                                 <i class="fas fa-download"></i> Download Ticket
                                             </a>
                                         <?php endif; ?>
@@ -159,7 +143,7 @@ $my_bookings = [
                         <i class="fas fa-ticket-alt" style="font-size: 64px; color: #ccc;"></i>
                         <h3>No Bookings Yet</h3>
                         <p>You haven't booked any events yet. Start exploring!</p>
-                        <a href="browse.php" class="btn-primary"><i class="fas fa-search"></i> Browse Events</a>
+                        <a href="events.php" class="btn-primary"><i class="fas fa-search"></i> Browse Events</a>
                     </div>
                 <?php endif; ?>
             </div>

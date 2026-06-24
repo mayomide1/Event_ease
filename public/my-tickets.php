@@ -1,5 +1,6 @@
 <?php
 session_start();
+require_once __DIR__ . '/../config/database.php';
 
 // Check if user is logged in
 if (!isset($_SESSION['user_id'])) {
@@ -8,48 +9,57 @@ if (!isset($_SESSION['user_id'])) {
     exit();
 }
 
-// Check if user is an organizer (redirect if they are)
+// If user is an organizer, redirect to dashboard
 if (isset($_SESSION['user_role']) && $_SESSION['user_role'] == 'organizer') {
     header('Location: dashboard.php');
     exit();
 }
 
-// Sample tickets data (will be replaced with database later)
-// Only show confirmed tickets
-$my_tickets = [
-    [
-        'id' => 1,
-        'event_title' => 'Tech Conference 2026',
-        'event_date' => 'June 20, 2026',
-        'event_time' => '9:00 AM - 6:00 PM',
-        'venue' => 'Lagos Convention Center',
-        'city' => 'Lagos',
-        'tickets' => 2,
-        'total_amount' => '₦30,000',
-        'status' => 'confirmed',
-        'ticket_code' => 'TCK-2026-001',
-        'qr_code' => 'qr-tck-001.png',
-        'image' => 'tech-conference.jpg',
-        'seat_number' => 'A12, A13',
-        'attendee_name' => $_SESSION['user_name'] ?? 'John Doe'
-    ],
-    [
-        'id' => 4,
-        'event_title' => 'Charity Gala Night',
-        'event_date' => 'September 10, 2026',
-        'event_time' => '6:00 PM - 10:00 PM',
-        'venue' => 'Grand Ballroom',
-        'city' => 'Port Harcourt',
-        'tickets' => 4,
-        'total_amount' => 'Free',
-        'status' => 'confirmed',
-        'ticket_code' => 'TCK-2026-004',
-        'qr_code' => 'qr-tck-004.png',
-        'image' => 'charity-gala.jpg',
-        'seat_number' => 'B5, B6, B7, B8',
-        'attendee_name' => $_SESSION['user_name'] ?? 'John Doe'
-    ]
-];
+$user_id = $_SESSION['user_id'];
+$db = Database::getConnection();
+
+// Fetch only confirmed bookings for this user
+$stmt = $db->prepare("
+    SELECT 
+        b.*, 
+        e.title as event_title, 
+        e.start_date, 
+        e.end_date, 
+        e.venue, 
+        e.city, 
+        e.image,
+        e.description
+    FROM bookings b
+    JOIN events e ON b.event_id = e.id
+    WHERE b.user_id = ? AND b.status = 'confirmed'
+    ORDER BY e.start_date ASC
+");
+$stmt->execute([$user_id]);
+$my_tickets = $stmt->fetchAll();
+
+// Helper functions
+function formatDate($datetime) {
+    return date('F j, Y', strtotime($datetime));
+}
+function formatTime($start, $end) {
+    return date('g:i A', strtotime($start)) . ' - ' . date('g:i A', strtotime($end));
+}
+
+// Calculate stats
+$total_tickets = count($my_tickets);
+$total_tickets_purchased = 0;
+$total_spent = 0;
+foreach ($my_tickets as $ticket) {
+    $total_tickets_purchased += $ticket['ticket_quantity'];
+    $total_spent += (float)$ticket['total_amount'];
+}
+$upcoming_events = $total_tickets; // All are upcoming (you could filter by date, but for simplicity)
+
+// Generate a dummy seat number (since we don't have seats in DB)
+function generateSeat($index) {
+    $rows = ['A', 'B', 'C', 'D', 'E', 'F'];
+    return $rows[$index % count($rows)] . (floor($index / count($rows)) + 1);
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -89,27 +99,19 @@ $my_tickets = [
             <div class="stats-grid">
                 <div class="stat-card">
                     <h3>Total Tickets</h3>
-                    <p><?php echo count($my_tickets); ?></p>
+                    <p><?php echo $total_tickets; ?></p>
                 </div>
                 <div class="stat-card">
                     <h3>Upcoming Events</h3>
-                    <p><?php echo count($my_tickets); ?></p>
+                    <p><?php echo $upcoming_events; ?></p>
                 </div>
                 <div class="stat-card">
                     <h3>Total Tickets Purchased</h3>
-                    <p><?php echo array_sum(array_column($my_tickets, 'tickets')); ?></p>
+                    <p><?php echo $total_tickets_purchased; ?></p>
                 </div>
                 <div class="stat-card">
                     <h3>Total Spent</h3>
-                    <p>₦<?php 
-                        $total = 0;
-                        foreach ($my_tickets as $ticket) {
-                            if ($ticket['total_amount'] != 'Free') {
-                                $total += (int)str_replace(['₦', ','], '', $ticket['total_amount']);
-                            }
-                        }
-                        echo number_format($total, 0);
-                    ?></p>
+                    <p>₦<?php echo number_format($total_spent, 2); ?></p>
                 </div>
             </div>
 
@@ -117,7 +119,13 @@ $my_tickets = [
             <div class="tickets-section">
                 <?php if (count($my_tickets) > 0): ?>
                     <div class="tickets-grid">
+                        <?php $seat_index = 0; ?>
                         <?php foreach ($my_tickets as $ticket): ?>
+                            <?php 
+                                $seat_number = generateSeat($seat_index++);
+                                $ticket_code = $ticket['booking_reference'];
+                                $total_amount = $ticket['total_amount'] == 0 ? 'Free' : '₦' . number_format($ticket['total_amount'], 2);
+                            ?>
                             <div class="ticket-card">
                                 <!-- Ticket Header -->
                                 <div class="ticket-header">
@@ -125,10 +133,10 @@ $my_tickets = [
                                         <span class="ticket-status confirmed">
                                             <i class="fas fa-check-circle"></i> Confirmed
                                         </span>
-                                        <span class="ticket-code">#<?php echo $ticket['ticket_code']; ?></span>
+                                        <span class="ticket-code">#<?php echo htmlspecialchars($ticket_code); ?></span>
                                     </div>
                                     <div class="ticket-header-right">
-                                        <span class="ticket-date"><?php echo $ticket['event_date']; ?></span>
+                                        <span class="ticket-date"><?php echo formatDate($ticket['start_date']); ?></span>
                                     </div>
                                 </div>
 
@@ -136,43 +144,43 @@ $my_tickets = [
                                 <div class="ticket-body">
                                     <div class="ticket-left">
                                         <div class="ticket-qr">
-                                            <!-- QR Code placeholder - replace with actual QR code generation -->
                                             <div class="qr-placeholder">
+                                                <!-- In real app, generate a QR code from ticket_code -->
                                                 <i class="fas fa-qrcode" style="font-size: 80px; color: #333;"></i>
                                             </div>
                                             <span class="qr-label">Scan for entry</span>
                                         </div>
                                     </div>
                                     <div class="ticket-right">
-                                        <h3><?php echo $ticket['event_title']; ?></h3>
+                                        <h3><?php echo htmlspecialchars($ticket['event_title']); ?></h3>
                                         <div class="ticket-meta">
                                             <div class="meta-row">
                                                 <i class="fas fa-calendar-day"></i>
-                                                <span><?php echo $ticket['event_date']; ?></span>
+                                                <span><?php echo formatDate($ticket['start_date']); ?></span>
                                             </div>
                                             <div class="meta-row">
                                                 <i class="fas fa-clock"></i>
-                                                <span><?php echo $ticket['event_time']; ?></span>
+                                                <span><?php echo formatTime($ticket['start_date'], $ticket['end_date']); ?></span>
                                             </div>
                                             <div class="meta-row">
                                                 <i class="fas fa-map-marker-alt"></i>
-                                                <span><?php echo $ticket['venue'] . ', ' . $ticket['city']; ?></span>
+                                                <span><?php echo htmlspecialchars($ticket['venue'] . ', ' . $ticket['city']); ?></span>
                                             </div>
                                             <div class="meta-row">
                                                 <i class="fas fa-user"></i>
-                                                <span><?php echo $ticket['attendee_name']; ?></span>
+                                                <span><?php echo htmlspecialchars($_SESSION['user_name'] ?? 'Attendee'); ?></span>
                                             </div>
                                             <div class="meta-row">
                                                 <i class="fas fa-chair"></i>
-                                                <span>Seat: <?php echo $ticket['seat_number']; ?></span>
+                                                <span>Seat: <?php echo $seat_number; ?></span>
                                             </div>
                                             <div class="meta-row">
                                                 <i class="fas fa-ticket-alt"></i>
-                                                <span><?php echo $ticket['tickets']; ?> tickets</span>
+                                                <span><?php echo $ticket['ticket_quantity']; ?> tickets</span>
                                             </div>
                                             <div class="meta-row">
                                                 <i class="fas fa-money-bill-wave"></i>
-                                                <span><?php echo $ticket['total_amount']; ?></span>
+                                                <span><?php echo $total_amount; ?></span>
                                             </div>
                                         </div>
                                     </div>
@@ -181,7 +189,7 @@ $my_tickets = [
                                 <!-- Ticket Footer -->
                                 <div class="ticket-footer">
                                     <div class="ticket-actions">
-                                        <a href="download-ticket.php?id=<?php echo $ticket['id']; ?>" class="btn-download">
+                                        <a href="download-ticket.php?ref=<?php echo $ticket_code; ?>" class="btn-download">
                                             <i class="fas fa-download"></i> Download Ticket
                                         </a>
                                         <button class="btn-print" onclick="window.print()">
@@ -197,7 +205,7 @@ $my_tickets = [
                         <i class="fas fa-ticket-alt" style="font-size: 64px; color: #ccc;"></i>
                         <h3>No Tickets Yet</h3>
                         <p>You don't have any confirmed tickets. Book an event to get your tickets!</p>
-                        <a href="browse.php" class="btn-primary"><i class="fas fa-search"></i> Browse Events</a>
+                        <a href="events.php" class="btn-primary"><i class="fas fa-search"></i> Browse Events</a>
                     </div>
                 <?php endif; ?>
             </div>

@@ -1,5 +1,6 @@
 <?php
 session_start();
+require_once __DIR__ . '/../config/database.php';
 
 // Check if user is logged in
 if (!isset($_SESSION['user_id'])) {
@@ -7,6 +8,63 @@ if (!isset($_SESSION['user_id'])) {
     header('Location: login.php');
     exit();
 }
+
+// Ensure only organizers/admins can access
+if (!in_array($_SESSION['user_role'], ['organizer', 'admin'])) {
+    $_SESSION['error'] = "Access denied.";
+    header('Location: browse.php');
+    exit();
+}
+
+$user_id = $_SESSION['user_id'];
+$db = Database::getConnection();
+
+// ----- Fetch statistics -----
+// Total Events created by this organizer
+$stmt = $db->prepare("SELECT COUNT(*) as total FROM events WHERE organizer_id = ?");
+$stmt->execute([$user_id]);
+$total_events = $stmt->fetch()['total'];
+
+// Total Bookings for organizer's events
+$stmt = $db->prepare("
+    SELECT COUNT(*) as total 
+    FROM bookings b 
+    JOIN events e ON b.event_id = e.id 
+    WHERE e.organizer_id = ?
+");
+$stmt->execute([$user_id]);
+$total_bookings = $stmt->fetch()['total'];
+
+// Tickets Sold (sum of ticket_quantity for confirmed bookings)
+$stmt = $db->prepare("
+    SELECT COALESCE(SUM(b.ticket_quantity), 0) as sold 
+    FROM bookings b 
+    JOIN events e ON b.event_id = e.id 
+    WHERE e.organizer_id = ? AND b.status = 'confirmed'
+");
+$stmt->execute([$user_id]);
+$tickets_sold = $stmt->fetch()['sold'];
+
+// Revenue (sum of total_amount for confirmed bookings)
+$stmt = $db->prepare("
+    SELECT COALESCE(SUM(b.total_amount), 0) as revenue 
+    FROM bookings b 
+    JOIN events e ON b.event_id = e.id 
+    WHERE e.organizer_id = ? AND b.status = 'confirmed'
+");
+$stmt->execute([$user_id]);
+$revenue = $stmt->fetch()['revenue'];
+
+// ----- Recent Events (latest 5) -----
+$stmt = $db->prepare("
+    SELECT id, title, start_date, status 
+    FROM events 
+    WHERE organizer_id = ? 
+    ORDER BY created_at DESC 
+    LIMIT 5
+");
+$stmt->execute([$user_id]);
+$recent_events = $stmt->fetchAll();
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -37,60 +95,56 @@ if (!isset($_SESSION['user_id'])) {
         <div class="main-content" id="mainContent">
             <div class="header">
                 <h1>Dashboard</h1>
-                <p><i class="fa-regular fa-hand-spock"></i> Welcome back, <?php echo $_SESSION['user_name'] ?? 'User'; ?>!</p>
+                <p><i class="fa-regular fa-hand-spock"></i> Welcome back, <?php echo htmlspecialchars($_SESSION['user_name'] ?? 'User'); ?>!</p>
             </div>
             
             <div class="stats-grid">
                 <div class="stat-card">
                     <h3>Total Events</h3>
-                    <p>12</p>
+                    <p><?php echo $total_events; ?></p>
                 </div>
                 <div class="stat-card">
                     <h3>Total Bookings</h3>
-                    <p>45</p>
+                    <p><?php echo $total_bookings; ?></p>
                 </div>
                 <div class="stat-card">
                     <h3>Tickets Sold</h3>
-                    <p>128</p>
+                    <p><?php echo $tickets_sold; ?></p>
                 </div>
                 <div class="stat-card">
                     <h3>Revenue</h3>
-                    <p>₦250,000</p>
+                    <p>₦<?php echo number_format($revenue, 2); ?></p>
                 </div>
             </div>
             
             <div class="recent-events">
                 <h2>Recent Events</h2>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Event</th>
-                            <th>Date</th>
-                            <th>Status</th>
-                            <th>Action</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td>Tech Conference 2026</td>
-                            <td>June 20, 2026</td>
-                            <td><span class="status active">Active</span></td>
-                            <td><a href="#" class="btn-small">View</a></td>
-                        </tr>
-                        <tr>
-                            <td>Music Festival</td>
-                            <td>July 15, 2026</td>
-                            <td><span class="status pending">Pending</span></td>
-                            <td><a href="#" class="btn-small">View</a></td>
-                        </tr>
-                        <tr>
-                            <td>Workshop: PHP</td>
-                            <td>August 5, 2026</td>
-                            <td><span class="status completed">Completed</span></td>
-                            <td><a href="#" class="btn-small">View</a></td>
-                        </tr>
-                    </tbody>
-                </table>
+                <?php if (count($recent_events) > 0): ?>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Event</th>
+                                <th>Date</th>
+                                <th>Status</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php foreach ($recent_events as $event): ?>
+                                <tr>
+                                    <td><?php echo htmlspecialchars($event['title']); ?></td>
+                                    <td><?php echo date('M d, Y', strtotime($event['start_date'])); ?></td>
+                                    <td><span class="status <?php echo $event['status']; ?>">
+                                        <?php echo ucfirst($event['status']); ?>
+                                    </span></td>
+                                    <td><a href="event-details.php?id=<?php echo $event['id']; ?>" class="btn-small">View</a></td>
+                                </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                <?php else: ?>
+                    <p>No events created yet. <a href="create-event.php">Create your first event</a>.</p>
+                <?php endif; ?>
             </div>
         </div>
     </div>
@@ -102,7 +156,6 @@ if (!isset($_SESSION['user_id'])) {
             const overlay = document.getElementById('sidebarOverlay');
             const mainContent = document.getElementById('mainContent');
 
-            // Ensure elements exist
             if (!sidebar || !hamburgerBtn || !overlay) {
                 console.error('Required elements not found!');
                 return;
@@ -111,47 +164,39 @@ if (!isset($_SESSION['user_id'])) {
             function toggleSidebar() {
                 sidebar.classList.toggle('active');
                 overlay.classList.toggle('active');
-                // Change icon
                 const icon = hamburgerBtn.querySelector('i');
                 if (sidebar.classList.contains('active')) {
                     icon.className = 'fas fa-times';
                 } else {
                     icon.className = 'fas fa-bars';
                 }
-
             }
 
-            // Click hamburger
             hamburgerBtn.addEventListener('click', function(e) {
                 e.stopPropagation();
                 toggleSidebar();
             });
 
-            // Click overlay to close
             overlay.addEventListener('click', function() {
                 if (sidebar.classList.contains('active')) {
                     toggleSidebar();
                 }
             });
 
-            // Close on Escape key
             document.addEventListener('keydown', function(e) {
                 if (e.key === 'Escape' && sidebar.classList.contains('active')) {
                     toggleSidebar();
                 }
             });
 
-            // Auto-close when resizing to desktop
             window.addEventListener('resize', function() {
                 if (window.innerWidth > 768 && sidebar.classList.contains('active')) {
                     toggleSidebar();
                 }
             });
 
-            // Close when clicking outside (on main content)
             mainContent.addEventListener('click', function(e) {
                 if (window.innerWidth <= 768 && sidebar.classList.contains('active')) {
-                    // Check if click is inside sidebar (shouldn't happen because sidebar is fixed)
                     toggleSidebar();
                 }
             });

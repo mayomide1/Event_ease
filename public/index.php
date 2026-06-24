@@ -1,92 +1,46 @@
 <?php
-session_start(); 
+session_start();
+require_once __DIR__ . '/../config/database.php';
 
-// Get current page for active state
 $current_page = basename($_SERVER['PHP_SELF']);
+$db = Database::getConnection();
 
-// Sample events data (will be replaced with database later)
-$featured_events = [
-    [
-        'id' => 1,
-        'title' => 'Tech Conference 2026',
-        'category' => 'Conference',
-        'date' => 'June 20, 2026',
-        'time' => '9:00 AM - 6:00 PM',
-        'venue' => 'Lagos Convention Center',
-        'city' => 'Lagos',
-        'price' => '₦15,000',
-        'image' => 'tech-conference.jpg',
-        'description' => 'Join industry leaders for the biggest tech event of the year. Network, learn, and innovate!',
-        'available_tickets' => 150
-    ],
-    [
-        'id' => 2,
-        'title' => 'Music Festival 2026',
-        'category' => 'Concert',
-        'date' => 'July 15, 2026',
-        'time' => '4:00 PM - 11:59 PM',
-        'venue' => 'Eko Atlantic City',
-        'city' => 'Lagos',
-        'price' => '₦25,000',
-        'image' => 'music-festival.jpg',
-        'description' => 'Experience the best of Nigerian music with top artists performing live!',
-        'available_tickets' => 300
-    ],
-    [
-        'id' => 3,
-        'title' => 'Entrepreneurship Workshop',
-        'category' => 'Workshop',
-        'date' => 'August 5, 2026',
-        'time' => '10:00 AM - 4:00 PM',
-        'venue' => 'Business Hub',
-        'city' => 'Abuja',
-        'price' => '₦10,000',
-        'image' => 'workshop.jpg',
-        'description' => 'Learn essential business skills from successful entrepreneurs and industry experts.',
-        'available_tickets' => 50
-    ],
-    [
-        'id' => 4,
-        'title' => 'Charity Gala Night',
-        'category' => 'Charity',
-        'date' => 'September 10, 2026',
-        'time' => '6:00 PM - 10:00 PM',
-        'venue' => 'Grand Ballroom',
-        'city' => 'Port Harcourt',
-        'price' => 'Free',
-        'image' => 'charity-gala.jpg',
-        'description' => 'Join us for a night of elegance and giving back to the community.',
-        'available_tickets' => 200
-    ],
-    [
-        'id' => 5,
-        'title' => 'Sports Tournament',
-        'category' => 'Sports',
-        'date' => 'October 2, 2026',
-        'time' => '8:00 AM - 6:00 PM',
-        'venue' => 'National Stadium',
-        'city' => 'Abuja',
-        'price' => '₦5,000',
-        'image' => 'sports-tournament.jpg',
-        'description' => 'Annual sports tournament featuring football, basketball, and athletics.',
-        'available_tickets' => 500
-    ],
-    [
-        'id' => 6,
-        'title' => 'Art Exhibition',
-        'category' => 'Exhibition',
-        'date' => 'November 12, 2026',
-        'time' => '10:00 AM - 8:00 PM',
-        'venue' => 'Art Gallery',
-        'city' => 'Lagos',
-        'price' => '₦7,500',
-        'image' => 'art-exhibition.jpg',
-        'description' => 'Showcasing the best of contemporary African art and emerging artists.',
-        'available_tickets' => 80
-    ]
-];
+// ----- Fetch featured events (latest published events) -----
+$stmt = $db->query("
+    SELECT e.*, c.name as category_name, u.name as organizer_name
+    FROM events e
+    LEFT JOIN categories c ON e.category_id = c.id
+    LEFT JOIN users u ON e.organizer_id = u.id
+    WHERE e.status = 'published'
+    ORDER BY e.created_at DESC
+    LIMIT 6
+");
+$featured_events = $stmt->fetchAll();
 
-$upcoming_events = array_slice($featured_events, 0, 3);
+// ----- Fetch upcoming events (soonest first) -----
+$stmt = $db->query("
+    SELECT e.*, c.name as category_name
+    FROM events e
+    LEFT JOIN categories c ON e.category_id = c.id
+    WHERE e.status = 'published' AND e.start_date > NOW()
+    ORDER BY e.start_date ASC
+    LIMIT 3
+");
+$upcoming_events = $stmt->fetchAll();
+
+// ----- Fetch category counts for stats -----
+$stmt = $db->query("
+    SELECT c.name, c.slug, COUNT(e.id) as event_count
+    FROM categories c
+    LEFT JOIN events e ON e.category_id = c.id AND e.status = 'published'
+    GROUP BY c.id
+");
+$categories_stats = $stmt->fetchAll();
+
+// ----- Fetch overall stats -----
+$total_events = $db->query("SELECT COUNT(*) as total FROM events WHERE status = 'published'")->fetch()['total'];
+$total_attendees = $db->query("SELECT SUM(tickets_sold) as total FROM events WHERE status = 'published'")->fetch()['total'] ?? 0;
+$total_venues = $db->query("SELECT COUNT(DISTINCT venue) as total FROM events WHERE status = 'published'")->fetch()['total'];
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -98,9 +52,9 @@ $upcoming_events = array_slice($featured_events, 0, 3);
     <link rel="stylesheet" href="assets/css/footer.css">
     <link rel="stylesheet" href="assets/css/navbar.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" 
-      integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" 
-      crossorigin="anonymous" 
-      referrerpolicy="no-referrer" />
+          integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" 
+          crossorigin="anonymous" 
+          referrerpolicy="no-referrer" />
 </head>
 <body>
     <?php include 'navbar.php'; ?>
@@ -118,15 +72,15 @@ $upcoming_events = array_slice($featured_events, 0, 3);
             </div>
             <div class="hero-stats">
                 <div class="stat">
-                    <span class="number">500+</span>
+                    <span class="number"><?php echo $total_events; ?>+</span>
                     <span class="label"><i class="fas fa-calendar-check"></i> Events Hosted</span>
                 </div>
                 <div class="stat">
-                    <span class="number">10K+</span>
+                    <span class="number"><?php echo number_format($total_attendees); ?>+</span>
                     <span class="label"><i class="fas fa-users"></i> Happy Attendees</span>
                 </div>
                 <div class="stat">
-                    <span class="number">50+</span>
+                    <span class="number"><?php echo $total_venues; ?>+</span>
                     <span class="label"><i class="fas fa-building"></i> Partner Venues</span>
                 </div>
             </div>
@@ -138,44 +92,41 @@ $upcoming_events = array_slice($featured_events, 0, 3);
 
     <!-- Categories Section -->
     <section class="categories">
-<div class="container">
-    <div class="section-header">
-        <h2>Browse by Category</h2>
-        <p>Find events that match your interests</p>
-    </div>
-    <div class="category-grid">
-        <a href="events.php?category=conference" class="category-card">
-            <span class="icon"><i class="fas fa-briefcase" style="color: #4A90D9;"></i></span>
-            <h3>Conferences</h3>
-            <p>150+ events</p>
-        </a>
-        <a href="events.php?category=concert" class="category-card">
-            <span class="icon"><i class="fas fa-music" style="color: #E74C3C;"></i></span>
-            <h3>Concerts</h3>
-            <p>120+ events</p>
-        </a>
-        <a href="events.php?category=workshop" class="category-card">
-            <span class="icon"><i class="fas fa-tools" style="color: #F39C12;"></i></span>
-            <h3>Workshops</h3>
-            <p>80+ events</p>
-        </a>
-        <a href="events.php?category=sports" class="category-card">
-            <span class="icon"><i class="fas fa-futbol" style="color: #27AE60;"></i></span>
-            <h3>Sports</h3>
-            <p>60+ events</p>
-        </a>
-        <a href="events.php?category=charity" class="category-card">
-            <span class="icon"><i class="fas fa-heart" style="color: #E74C3C;"></i></span>
-            <h3>Charity</h3>
-            <p>40+ events</p>
-        </a>
-        <a href="events.php?category=exhibition" class="category-card">
-            <span class="icon"><i class="fas fa-palette" style="color: #8E44AD;"></i></span>
-            <h3>Exhibitions</h3>
-            <p>35+ events</p>
-        </a>
-    </div>
-</div>
+        <div class="container">
+            <div class="section-header">
+                <h2>Browse by Category</h2>
+                <p>Find events that match your interests</p>
+            </div>
+            <div class="category-grid">
+                <?php 
+                // You can map icons to categories via a helper or hardcoded, but we can also use the first letter or an icon map:
+                $icon_map = [
+                    'Conference' => 'fa-briefcase',
+                    'Concert' => 'fa-music',
+                    'Workshop' => 'fa-tools',
+                    'Charity' => 'fa-heart',
+                    'Sports' => 'fa-futbol',
+                    'Exhibition' => 'fa-palette'
+                ];
+                $color_map = [
+                    'Conference' => '#4A90D9',
+                    'Concert' => '#E74C3C',
+                    'Workshop' => '#F39C12',
+                    'Charity' => '#E74C3C',
+                    'Sports' => '#27AE60',
+                    'Exhibition' => '#8E44AD'
+                ];
+                foreach ($categories_stats as $cat): 
+                    $icon = $icon_map[$cat['name']] ?? 'fa-tag';
+                    $color = $color_map[$cat['name']] ?? '#667eea';
+                ?>
+                    <a href="events.php?category=<?php echo $cat['slug']; ?>" class="category-card">
+                        <span class="icon"><i class="fas <?php echo $icon; ?>" style="color: <?php echo $color; ?>;"></i></span>
+                        <h3><?php echo $cat['name']; ?></h3>
+                        <p><?php echo $cat['event_count']; ?> events</p>
+                    </a>
+                <?php endforeach; ?>
+            </div>
         </div>
     </section>
 
@@ -188,37 +139,43 @@ $upcoming_events = array_slice($featured_events, 0, 3);
                 <a href="events.php" class="view-all">View All Events →</a>
             </div>
             <div class="events-grid">
-                <?php foreach ($featured_events as $event): ?>
-                    <div class="event-card">
-                        <div class="event-image">
-                            <img src="assets/images/events/<?php echo $event['image']; ?>" 
-                                 alt="<?php echo $event['title']; ?>" 
-                                 onerror="this.src='assets/images/event-placeholder.jpg'">
-                            <span class="event-category"><?php echo $event['category']; ?></span>
-                            <?php if ($event['price'] == 'Free'): ?>
-                                <span class="event-price-badge free">Free</span>
-                            <?php else: ?>
-                                <span class="event-price-badge"><?php echo $event['price']; ?></span>
-                            <?php endif; ?>
-                        </div>
-                        <div class="event-body">
-                            <h3><?php echo $event['title']; ?></h3>
-                            <p class="event-description"><?php echo substr($event['description'], 0, 80) . '...'; ?></p>
-                            <div class="event-meta">
-                                <span class="meta-item">
-                                    <span class="icon"><i class="fas fa-calendar-alt"></i> </span> <?php echo $event['date']; ?>
-                                </span>
-                                <span class="meta-item">
-                                    <span class="icon"><i class="fa-solid fa-location-dot"></i></i></span> <?php echo $event['city']; ?>
-                                </span>
+                <?php if (count($featured_events) > 0): ?>
+                    <?php foreach ($featured_events as $event): ?>
+                        <div class="event-card">
+                            <div class="event-image">
+                                <img src="assets/images/events/<?php echo $event['image'] ?? 'placeholder.jpg'; ?>" 
+                                     alt="<?php echo htmlspecialchars($event['title']); ?>" 
+                                     onerror="this.src='assets/images/event-placeholder.jpg'">
+                                <span class="event-category"><?php echo htmlspecialchars($event['category_name'] ?? 'Uncategorized'); ?></span>
+                                <?php if ($event['is_free']): ?>
+                                    <span class="event-price-badge free">Free</span>
+                                <?php else: ?>
+                                    <span class="event-price-badge">₦<?php echo number_format($event['price'], 2); ?></span>
+                                <?php endif; ?>
                             </div>
-                            <div class="event-footer">
-                                <span class="tickets-available"><i class="fas fa-ticket-alt"></i>  <?php echo $event['available_tickets']; ?> left</span>
-                                <a href="event-details.php?id=<?php echo $event['id']; ?>" class="btn-book">Book Now</a>
+                            <div class="event-body">
+                                <h3><?php echo htmlspecialchars($event['title']); ?></h3>
+                                <p class="event-description"><?php echo substr(htmlspecialchars($event['description']), 0, 80) . '...'; ?></p>
+                                <div class="event-meta">
+                                    <span class="meta-item">
+                                        <span class="icon"><i class="fas fa-calendar-alt"></i> </span> 
+                                        <?php echo date('M d, Y', strtotime($event['start_date'])); ?>
+                                    </span>
+                                    <span class="meta-item">
+                                        <span class="icon"><i class="fa-solid fa-location-dot"></i></span> 
+                                        <?php echo htmlspecialchars($event['city']); ?>
+                                    </span>
+                                </div>
+                                <div class="event-footer">
+                                    <span class="tickets-available"><i class="fas fa-ticket-alt"></i> <?php echo $event['capacity'] - $event['tickets_sold']; ?> left</span>
+                                    <a href="event-details.php?id=<?php echo $event['id']; ?>" class="btn-book">Book Now</a>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                <?php endforeach; ?>
+                    <?php endforeach; ?>
+                <?php else: ?>
+                    <p>No featured events available at the moment.</p>
+                <?php endif; ?>
             </div>
         </div>
     </section>
@@ -231,20 +188,26 @@ $upcoming_events = array_slice($featured_events, 0, 3);
                 <p>Don't miss out on these exciting events happening soon</p>
             </div>
             <div class="upcoming-grid">
-                <?php foreach ($upcoming_events as $event): ?>
-                    <div class="upcoming-card">
-                        <div class="upcoming-date">
-                            <span class="day"><?php echo date('d', strtotime($event['date'])); ?></span>
-                            <span class="month"><?php echo date('M', strtotime($event['date'])); ?></span>
+                <?php if (count($upcoming_events) > 0): ?>
+                    <?php foreach ($upcoming_events as $event): ?>
+                        <div class="upcoming-card">
+                            <div class="upcoming-date">
+                                <span class="day"><?php echo date('d', strtotime($event['start_date'])); ?></span>
+                                <span class="month"><?php echo date('M', strtotime($event['start_date'])); ?></span>
+                            </div>
+                            <div class="upcoming-info">
+                                <h4><?php echo htmlspecialchars($event['title']); ?></h4>
+                                <p><span class="icon"><i class="fa-solid fa-location-dot"></i></span> <?php echo htmlspecialchars($event['venue']); ?></p>
+                                <p><span class="icon"><i class="fa-regular fa-clock"></i></span> 
+                                    <?php echo date('g:i A', strtotime($event['start_date'])) . ' - ' . date('g:i A', strtotime($event['end_date'])); ?>
+                                </p>
+                            </div>
+                            <a href="event-details.php?id=<?php echo $event['id']; ?>" class="btn-small">View</a>
                         </div>
-                        <div class="upcoming-info">
-                            <h4><?php echo $event['title']; ?></h4>
-                            <p><span class="icon"><i class="fa-solid fa-location-dot"></i></span> <?php echo $event['venue']; ?></p>
-                            <p><span class="icon"><i class="fa-regular fa-clock"></i></span> <?php echo $event['time']; ?></p>
-                        </div>
-                        <a href="event-details.php?id=<?php echo $event['id']; ?>" class="btn-small">View</a>
-                    </div>
-                <?php endforeach; ?>
+                    <?php endforeach; ?>
+                <?php else: ?>
+                    <p>No upcoming events at the moment.</p>
+                <?php endif; ?>
             </div>
         </div>
     </section>
@@ -286,7 +249,7 @@ $upcoming_events = array_slice($featured_events, 0, 3);
                     <p>Get personalized event recommendations based on your interests and history.</p>
                 </div>
             </div>
-            </div>
+        </div>
     </section>
 
     <!-- Call to Action -->
@@ -304,14 +267,16 @@ $upcoming_events = array_slice($featured_events, 0, 3);
         </div>
     </section>
 
-    <?php include 'footer.php';?>
+    <?php include 'footer.php'; ?>
 
     <script>
+        // Hamburger menu toggle
         document.querySelector('.hamburger').addEventListener('click', function() {
             this.classList.toggle('active');
             document.querySelector('.nav-menu').classList.toggle('active');
         });
 
+        // Smooth scroll for anchor links
         document.querySelectorAll('a[href^="#"]').forEach(anchor => {
             anchor.addEventListener('click', function (e) {
                 e.preventDefault();
@@ -325,11 +290,11 @@ $upcoming_events = array_slice($featured_events, 0, 3);
             });
         });
 
+        // Animation on scroll (Intersection Observer)
         const observerOptions = {
             threshold: 0.1,
             rootMargin: '0px 0px -50px 0px'
         };
-
         const observer = new IntersectionObserver((entries) => {
             entries.forEach(entry => {
                 if (entry.isIntersecting) {
@@ -337,10 +302,9 @@ $upcoming_events = array_slice($featured_events, 0, 3);
                 }
             });
         }, observerOptions);
-
         document.querySelectorAll('.event-card, .feature-card, .category-card').forEach(el => {
             observer.observe(el);
         });
     </script>
 </body>
-</html>     
+</html>

@@ -248,6 +248,29 @@
     background: #1e7e34;
 }
 
+/* Booking stats breakdown inside stat box */
+.stat-box .stat-breakdown {
+    margin-top: 8px;
+    font-size: 13px;
+    color: #888;
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+}
+
+.stat-box .stat-breakdown .pending {
+    color: #f39c12;
+}
+
+.stat-box .stat-breakdown .confirmed {
+    color: #28a745;
+}
+
+/* Adjust stat box to accommodate breakdown */
+.stat-box.bookings-stat {
+    padding-bottom: 15px;
+}
+
 /* Responsive for profile */
 @media (max-width: 768px) {
     .profile-header {

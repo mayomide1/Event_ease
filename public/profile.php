@@ -16,7 +16,7 @@ if (!isset($_SESSION['user_id'])) {
 $user_id = $_SESSION['user_id'];
 $db = Database::getConnection();
 
-// Fetch user data from database
+// Fetch user data
 $stmt = $db->prepare("SELECT * FROM users WHERE id = ?");
 $stmt->execute([$user_id]);
 $user = $stmt->fetch();
@@ -28,12 +28,93 @@ if (!$user) {
     exit();
 }
 
-// Update session with fresh data (optional but good practice)
+// Update session
 $_SESSION['user_name'] = $user['name'];
 $_SESSION['user_email'] = $user['email'];
 $_SESSION['user_phone'] = $user['phone'] ?? '';
 $_SESSION['user_role'] = $user['role'];
 $_SESSION['user_created_at'] = $user['created_at'];
+
+// ----- Fetch statistics based on role -----
+$stats = [];
+if ($user['role'] === 'organizer' || $user['role'] === 'admin') {
+    // Events Created
+    $stmt = $db->prepare("SELECT COUNT(*) as total FROM events WHERE organizer_id = ?");
+    $stmt->execute([$user_id]);
+    $stats['events_created'] = $stmt->fetch()['total'];
+
+    // Bookings for organizer's events (total, pending, confirmed)
+    $stmt = $db->prepare("
+        SELECT 
+            COUNT(*) as total,
+            SUM(CASE WHEN b.status = 'pending' THEN 1 ELSE 0 END) as pending,
+            SUM(CASE WHEN b.status = 'confirmed' THEN 1 ELSE 0 END) as confirmed
+        FROM bookings b 
+        JOIN events e ON b.event_id = e.id 
+        WHERE e.organizer_id = ?
+    ");
+    $stmt->execute([$user_id]);
+    $booking_stats = $stmt->fetch();
+    $stats['total_bookings'] = $booking_stats['total'];
+    $stats['pending_bookings'] = $booking_stats['pending'];
+    $stats['confirmed_bookings'] = $booking_stats['confirmed'];
+
+    // Tickets Sold (confirmed bookings)
+    $stmt = $db->prepare("
+        SELECT COALESCE(SUM(b.ticket_quantity), 0) as sold 
+        FROM bookings b 
+        JOIN events e ON b.event_id = e.id 
+        WHERE e.organizer_id = ? AND b.status = 'confirmed'
+    ");
+    $stmt->execute([$user_id]);
+    $stats['tickets_sold'] = $stmt->fetch()['sold'];
+
+    // Revenue
+    $stmt = $db->prepare("
+        SELECT COALESCE(SUM(b.total_amount), 0) as revenue 
+        FROM bookings b 
+        JOIN events e ON b.event_id = e.id 
+        WHERE e.organizer_id = ? AND b.status = 'confirmed'
+    ");
+    $stmt->execute([$user_id]);
+    $stats['revenue'] = $stmt->fetch()['revenue'];
+} else {
+    // User stats
+    $stmt = $db->prepare("
+        SELECT 
+            COUNT(*) as total,
+            SUM(CASE WHEN status = 'pending' THEN 1 ELSE 0 END) as pending,
+            SUM(CASE WHEN status = 'confirmed' THEN 1 ELSE 0 END) as confirmed
+        FROM bookings 
+        WHERE user_id = ?
+    ");
+    $stmt->execute([$user_id]);
+    $booking_stats = $stmt->fetch();
+    $stats['total_bookings'] = $booking_stats['total'];
+    $stats['pending_bookings'] = $booking_stats['pending'];
+    $stats['confirmed_bookings'] = $booking_stats['confirmed'];
+
+    // Events Attended (could be considered as confirmed bookings)
+    $stats['events_attended'] = $stats['confirmed_bookings'];
+
+    // Tickets Purchased (sum of ticket_quantity for confirmed bookings)
+    $stmt = $db->prepare("
+        SELECT COALESCE(SUM(ticket_quantity), 0) as purchased 
+        FROM bookings 
+        WHERE user_id = ? AND status = 'confirmed'
+    ");
+    $stmt->execute([$user_id]);
+    $stats['tickets_purchased'] = $stmt->fetch()['purchased'];
+
+    // Total Spent
+    $stmt = $db->prepare("
+        SELECT COALESCE(SUM(total_amount), 0) as spent 
+        FROM bookings 
+        WHERE user_id = ? AND status = 'confirmed'
+    ");
+    $stmt->execute([$user_id]);
+    $stats['total_spent'] = $stmt->fetch()['spent'];
+}
 
 // Prepare display data
 $user_data = [
@@ -67,25 +148,35 @@ $user_data = [
 </head>
 <body>
     <div class="dashboard-container">
-        <!-- Sidebar -->
         <?php include 'sidebar.php'; ?>
 
         <button class="hamburger-btn" id="hamburgerBtn" aria-label="Toggle navigation">
             <i class="fas fa-bars"></i>
         </button>
-
-        <!-- Overlay for mobile -->
         <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
-        <!-- Main Content -->
         <div class="main-content" id="mainContent">
             <div class="header">
                 <h1>Profile</h1>
                 <p><i class="fa-regular fa-user"></i> Manage your account information</p>
             </div>
 
-            <!-- Profile Card -->
+            <!-- Display global messages -->
+            <?php if ($password_success): ?>
+                <div class="alert alert-success"><?php echo $password_success; ?></div>
+            <?php endif; ?>
+            <?php if (!empty($password_errors)): ?>
+                <div class="alert alert-error">
+                    <ul>
+                        <?php foreach ($password_errors as $error): ?>
+                            <li><?php echo $error; ?></li>
+                        <?php endforeach; ?>
+                    </ul>
+                </div>
+            <?php endif; ?>
+
             <div class="profile-container">
+                <!-- Profile Card -->
                 <div class="profile-card">
                     <div class="profile-header">
                         <div class="profile-avatar">
@@ -94,9 +185,6 @@ $user_data = [
                         <div class="profile-info">
                             <h2><?php echo htmlspecialchars($user_data['name']); ?></h2>
                             <p class="profile-role"><i class="fas fa-badge-check"></i> <?php echo ucfirst($user_data['role']); ?></p>
-                            <?php if ($user_data['role'] === 'organizer' || $user_data['role'] === 'admin'): ?>
-                                <p class="profile-org"><i class="fas fa-building"></i> <?php echo $user_data['organization']; ?></p>
-                            <?php endif; ?>
                         </div>
                     </div>
 
@@ -116,41 +204,51 @@ $user_data = [
                             </div>
                         </div>
 
+                        <!-- Stats for Organizer/Admin -->
                         <?php if ($user_data['role'] === 'organizer' || $user_data['role'] === 'admin'): ?>
                             <div class="profile-stats">
                                 <div class="stat-box">
-                                    <span class="stat-number">12</span>
+                                    <span class="stat-number"><?php echo $stats['events_created']; ?></span>
                                     <span class="stat-label">Events Created</span>
                                 </div>
-                                <div class="stat-box">
-                                    <span class="stat-number">45</span>
+                                <div class="stat-box bookings-stat">
+                                    <span class="stat-number"><?php echo $stats['total_bookings']; ?></span>
                                     <span class="stat-label">Total Bookings</span>
+                                    <div class="stat-breakdown">
+                                        <span class="pending">Pending: <?php echo $stats['pending_bookings']; ?></span>
+                                        <span class="confirmed">Confirmed: <?php echo $stats['confirmed_bookings']; ?></span>
+                                    </div>
                                 </div>
                                 <div class="stat-box">
-                                    <span class="stat-number">128</span>
+                                    <span class="stat-number"><?php echo $stats['tickets_sold']; ?></span>
                                     <span class="stat-label">Tickets Sold</span>
                                 </div>
                                 <div class="stat-box">
-                                    <span class="stat-number">₦250K</span>
+                                    <span class="stat-number">₦<?php echo number_format($stats['revenue'], 2); ?></span>
                                     <span class="stat-label">Revenue</span>
                                 </div>
                             </div>
                         <?php else: ?>
+                            <!-- Stats for Regular User -->
                             <div class="profile-stats user-stats">
                                 <div class="stat-box">
-                                    <span class="stat-number">6</span>
+                                    <span class="stat-number"><?php echo $stats['events_attended']; ?></span>
                                     <span class="stat-label">Events Attended</span>
                                 </div>
-                                <div class="stat-box">
-                                    <span class="stat-number">4</span>
-                                    <span class="stat-label">Bookings</span>
+                                <div class="stat-box bookings-stat">
+                                    <span class="stat-number"><?php echo $stats['total_bookings']; ?></span>
+                                    <span class="stat-label">Total Bookings</span>
+                                    <div class="stat-breakdown">
+                                        <span class="pending">Pending: <?php echo $stats['pending_bookings']; ?></span>
+                                        <span class="confirmed">Confirmed: <?php echo $stats['confirmed_bookings']; ?></span>
+                                    </div>
                                 </div>
                                 <div class="stat-box">
-                                    <span class="stat-number">12</span>
+                                    <span class="stat-number"><?php echo $stats['tickets_purchased']; ?></span>
                                     <span class="stat-label">Tickets Purchased</span>
                                 </div>
                                 <div class="stat-box">
-                                    <span class="stat-number">₦85K</span>
+                                    <span class="stat-number">₦<?php echo number_format($stats['total_spent'], 2); ?></span>
                                     <span class="stat-label">Total Spent</span>
                                 </div>
                             </div>
@@ -161,19 +259,6 @@ $user_data = [
                 <!-- Change Password Section -->
                 <div class="profile-card password-card">
                     <h3><i class="fas fa-lock"></i> Change Password</h3>
-
-                        <?php if ($password_success): ?>
-                            <div class="alert alert-success"><?php echo $password_success; ?></div>
-                        <?php endif; ?>
-                        <?php if (!empty($password_errors)): ?>
-                            <div class="alert alert-error">
-                                <ul>
-                                    <?php foreach ($password_errors as $error): ?>
-                                        <li><?php echo $error; ?></li>
-                                    <?php endforeach; ?>
-                                </ul>
-                            </div>
-                        <?php endif; ?>
                     <form action="change-password.php" method="POST">
                         <div class="form-row">
                             <div class="form-group">

@@ -1,9 +1,30 @@
 <?php 
     $current_page = basename($_SERVER['PHP_SELF']);
+    $is_logged_in = isset($_SESSION['user_id']);
+    $user_name = $_SESSION['user_name'] ?? 'Guest';
+    $user_email = $_SESSION['user_email'] ?? '';
+    $user_role = $_SESSION['user_role'] ?? '';
 ?>
 <div class="sidebar">
     <div class="sidebar-header">
         <h2><a href="index.php" class="logo"><i class="fas fa-ticket-alt"></i> EventEase</a></h2>
+        <?php if ($is_logged_in): ?>
+            <div class="user-info">
+                <div class="user-avatar">
+                    <img src="https://ui-avatars.com/api/?name=<?php echo urlencode($user_name); ?>&background=667eea&color=fff&size=50" alt="Avatar">
+                </div>
+                <div class="user-details">
+                    <span class="user-name"><?php echo htmlspecialchars($user_name); ?></span>
+                    <span class="user-email"><?php echo htmlspecialchars($user_email); ?></span>
+                    <span class="user-role"><i class="fas fa-badge-check"></i> <?php echo ucfirst($user_role); ?></span>
+                </div>
+            </div>
+        <?php else: ?>
+            <div class="user-info guest">
+                <span class="guest-text">Welcome, Guest</span>
+                <a href="login.php" class="guest-login">Login</a>
+            </div>
+        <?php endif; ?>
     </div>
     
     <nav class="sidebar-nav">
