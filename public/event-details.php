@@ -69,8 +69,8 @@ $event_data = [
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo htmlspecialchars($event_data['title']); ?> - EventEase</title>
-    <link rel="stylesheet" href="assets/css/navbar.css">
     <link rel="stylesheet" href="assets/css/event-details.css">
+    <link rel="stylesheet" href="assets/css/navbar.css">
     <link rel="stylesheet" href="assets/css/footer.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" 
           integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" 
@@ -78,19 +78,17 @@ $event_data = [
           referrerpolicy="no-referrer" />
 </head>
 <body>
-    <!-- Navbar -->
     <?php include 'navbar.php'; ?>
 
-    <!-- Event Details -->
     <section class="event-details">
         <div class="container">
             <div class="details-grid">
-                <!-- Left Column - Event Info -->
+
                 <div class="event-info">
                     <nav class="breadcrumb">
                         <a href="index.php">Home</a>
                         <span class="separator">›</span>
-                        <a href="browse.php">Events</a>
+                        <a href="events.php">Events</a>
                         <span class="separator">›</span>
                         <span class="current"><?php echo htmlspecialchars($event_data['title']); ?></span>
                     </nav>
@@ -155,8 +153,7 @@ $event_data = [
                         </div>
                     </div>
                 </div>
-
-                <!-- Right Column - Booking Card -->
+                
                 <div class="booking-card">
                     <div class="card-header">
                         <h3><i class="fas fa-ticket-alt"></i> Book Tickets</h3>
@@ -209,44 +206,5 @@ $event_data = [
 
     <?php include 'footer.php'; ?>
 
-    <script>
-        // Mobile Hamburger Menu
-        document.querySelector('.hamburger').addEventListener('click', function() {
-            this.classList.toggle('active');
-            document.querySelector('.nav-menu').classList.toggle('active');
-        });
-
-        // Quantity Selector
-        document.getElementById('decreaseQty').addEventListener('click', function() {
-            let input = document.getElementById('quantity');
-            let current = parseInt(input.value);
-            if (current > 1) {
-                input.value = current - 1;
-                updateTotal();
-            }
-        });
-
-        document.getElementById('increaseQty').addEventListener('click', function() {
-            let input = document.getElementById('quantity');
-            let current = parseInt(input.value);
-            let max = parseInt(input.max);
-            if (current < max) {
-                input.value = current + 1;
-                updateTotal();
-            }
-        });
-
-        document.getElementById('quantity').addEventListener('change', function() {
-            updateTotal();
-        });
-
-        function updateTotal() {
-            let quantity = parseInt(document.getElementById('quantity').value);
-            let price = <?php echo $event_data['price_numeric']; ?>;
-            let total = quantity * price;
-            let formatted = '₦' + total.toLocaleString();
-            document.querySelector('.total-amount').textContent = formatted;
-        }
-    </script>
 </body>
 </html>

@@ -35,7 +35,7 @@
                 <div class="footer-newsletter">
                     <h4>Stay Updated</h4>
                     <p>Subscribe to get updates on new events</p>
-                    <form action="subscribe.php" method="POST" class="newsletter-form">
+                    <form action="#" method="POST" class="newsletter-form">
                         <input type="email" name="email" placeholder="Enter your email" required>
                         <button type="submit">Subscribe</button>
                     </form>

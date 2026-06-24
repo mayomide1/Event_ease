@@ -80,8 +80,9 @@ $categories = $cat_stmt->fetchAll();
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo $selected_category ? ucfirst($selected_category) . ' Events' : 'All Events'; ?> - EventEase</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <link rel="stylesheet" href="assets/css/style.css">
     <link rel="stylesheet" href="assets/css/events.css">
+    <link rel="stylesheet" href="assets/css/navbar.css">
+    <link rel="stylesheet" href="assets/css/footer.css">
 </head>
 <body>
     <?php include 'navbar.php'; ?>
@@ -188,35 +189,6 @@ $categories = $cat_stmt->fetchAll();
         </div>
     </section>
 
-    <!-- Footer -->
     <?php include 'footer.php'; ?>
-
-    <script>
-        // Mobile Hamburger Menu
-        document.querySelector('.hamburger').addEventListener('click', function() {
-            this.classList.toggle('active');
-            document.querySelector('.nav-menu').classList.toggle('active');
-        });
-
-        // Search functionality
-        const searchInput = document.getElementById('searchEvents');
-        const eventCards = document.querySelectorAll('.event-card');
-
-        searchInput.addEventListener('keyup', function() {
-            const searchTerm = this.value.toLowerCase();
-            
-            eventCards.forEach(card => {
-                const title = card.querySelector('h3').textContent.toLowerCase();
-                const description = card.querySelector('.event-description').textContent.toLowerCase();
-                const category = card.dataset.category.toLowerCase();
-                
-                if (title.includes(searchTerm) || description.includes(searchTerm) || category.includes(searchTerm)) {
-                    card.style.display = '';
-                } else {
-                    card.style.display = 'none';
-                }
-            });
-        });
-    </script>
 </body>
 </html>

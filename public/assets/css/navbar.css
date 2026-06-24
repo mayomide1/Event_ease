@@ -19,6 +19,7 @@ ul {
     position: sticky;
     top: 0;
     z-index: 1000;
+    overflow: visible;
     padding: 0 20px;
     height: 70px;
     display: flex;
@@ -146,23 +147,52 @@ ul {
     gap: 5px;
 }
 
-.hamburger span {
-    display: block;
-    width: 28px;
-    height: 3px;
-    background: #333;
-    border-radius: 3px;
-    transition: all 0.3s ease;
-}
+@media (max-width: 768px) {
+    .hamburger {
+        display: block;
+        font-size: 30px;
+    }
 
-.hamburger.active span:nth-child(1) {
-    transform: rotate(45deg) translate(5px, 6px);
-}
+    .nav-menu {
+        position: absolute;
+        top: 70px;
+        left: -100%;
+        width: 100%;
+        height: calc(100vh - 70px);
+        background: #fff;
+        flex-direction: column;
+        padding: 30px 20px;
+        gap: 15px;
+        transition: left 0.3s ease;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        overflow-y: auto;
+    }
 
-.hamburger.active span:nth-child(2) {
-    opacity: 0;
-}
+    .nav-menu.active {
+        left: 0;
+    }
 
-.hamburger.active span:nth-child(3) {
-    transform: rotate(-45deg) translate(5px, -6px);
+    .nav-menu li a {
+        display: block;
+        padding: 14px 20px;
+        width: 100%;
+        text-align: center;
+        font-size: 16px;
+        border-radius: 10px;
+    }
+
+    .nav-menu li a.btn-home,
+    .nav-menu li a.btn-browse,
+    .nav-menu li a.btn-dashboard,
+    .nav-menu li a.btn-bookings,
+    .nav-menu li a.btn-login,
+    .nav-menu li a.btn-signup,
+    .nav-menu li a.btn-logout {
+        width: 100%;
+        text-align: center;
+    }
+
+    .nav-menu li a.active::after {
+        display: none;
+    }
 }
