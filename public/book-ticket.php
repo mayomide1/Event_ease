@@ -4,6 +4,7 @@ require_once __DIR__ . '/../config/database.php';
 
 // Ensure user is logged in
 if (!isset($_SESSION['user_id'])) {
+    $_SESSION['error'] = "Please login to book tickets.";
     header('Location: login.php');
     exit();
 }
@@ -19,23 +20,32 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $attendee_phone = trim($_POST['attendee_phone'] ?? '');
     $payment_method = $_POST['payment_method'] ?? '';
 
-    // Validate inputs (simplified)
+    // Validate inputs
     if ($event_id <= 0 || $quantity < 1) {
         $_SESSION['error'] = "Invalid event or quantity.";
         header('Location: event-details.php?id=' . $event_id);
         exit();
     }
 
-    // Fetch event details to calculate total
-    $stmt = $db->prepare("SELECT price, is_free FROM events WHERE id = ?");
+    // Fetch event details including capacity and tickets_sold
+    $stmt = $db->prepare("SELECT price, is_free, capacity, tickets_sold FROM events WHERE id = ? AND status = 'published'");
     $stmt->execute([$event_id]);
     $event = $stmt->fetch();
     if (!$event) {
-        $_SESSION['error'] = "Event not found.";
+        $_SESSION['error'] = "Event not found or unavailable.";
         header('Location: browse.php');
         exit();
     }
 
+    // Check if enough tickets are available
+    $available = $event['capacity'] - $event['tickets_sold'];
+    if ($quantity > $available) {
+        $_SESSION['error'] = "Sorry, only $available ticket(s) left.";
+        header('Location: event-details.php?id=' . $event_id);
+        exit();
+    }
+
+    // Calculate total amount
     $total_amount = $event['is_free'] ? 0 : ($event['price'] * $quantity);
 
     // Generate booking reference

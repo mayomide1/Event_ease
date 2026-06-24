@@ -35,7 +35,9 @@ if (!$booking || $booking['status'] !== 'confirmed') {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Booking Confirmed - EventEase</title>
-    <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="stylesheet" href="assets/css/payment.css">
+    <link rel="stylesheet" href="assets/css/navbar.css">
+    <link rel="stylesheet" href="assets/css/footer.css">
 </head>
 <body>
     <?php include 'navbar.php'; ?>

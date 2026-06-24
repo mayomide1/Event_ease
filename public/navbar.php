@@ -8,7 +8,7 @@
             </div>
             
             <ul class="nav-menu">
-                <li><a href="index.php">Home</a></li>
+                <li><a href="index.php"><i class="fa-solid fa-house"></i> Home</a></li>
                 <li><a href="events.php">Browse Events</a></li>
                 <?php if (isset($_SESSION['user_id'])): ?>
                     <?php if ($_SESSION['user_role'] == 'organizer'): ?>

@@ -1,0 +1,248 @@
+.payment-section,
+.confirmation {
+    padding: 60px 0;
+    background: #f8f9fa;
+    min-height: 70vh;
+    display: flex;
+    align-items: center;
+}
+
+.payment-box,
+.success-box {
+    width: 100%;
+    max-width: 700px;
+    margin: 0 auto;
+    background: #ffffff;
+    border-radius: 16px;
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.08);
+    padding: 40px 45px;
+    transition: transform 0.3s ease;
+}
+
+.payment-box:hover,
+.success-box:hover {
+    transform: translateY(-3px);
+}
+
+.payment-box h2,
+.success-box h2 {
+    font-size: 28px;
+    color: #333;
+    margin-bottom: 8px;
+    font-weight: 700;
+}
+
+.payment-box p,
+.success-box p {
+    color: #666;
+    font-size: 16px;
+    margin-bottom: 25px;
+}
+
+/* ----- Booking Summary (Payment) ----- */
+.booking-summary {
+    background: #f8faff;
+    border-radius: 12px;
+    padding: 20px 25px;
+    margin-bottom: 30px;
+    border-left: 4px solid #667eea;
+}
+
+.booking-summary h3 {
+    font-size: 20px;
+    color: #333;
+    margin-bottom: 12px;
+}
+
+.booking-summary p {
+    margin: 6px 0;
+    font-size: 15px;
+    color: #555;
+    display: flex;
+    justify-content: space-between;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 6px;
+}
+
+.booking-summary p:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+}
+
+.booking-summary strong {
+    color: #333;
+}
+
+.payment-box form {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.btn{
+    border: 2px solid red;
+}
+
+.btn-primary,
+.btn-secondary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 14px 30px;
+    border-radius: 10px;
+    font-size: 16px;
+    font-weight: 600;
+    text-decoration: none;
+    cursor: pointer;
+    border: none;
+    transition: all 0.3s ease;
+    width: 100%;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: #fff;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+}
+
+.btn-primary:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 28px rgba(102, 126, 234, 0.4);
+}
+
+.btn-secondary {
+    width: 84%;
+    background: #f0f2f5;
+    color: #555;
+    border: 1px solid #ddd;
+}
+
+.btn-secondary:hover {
+    background: #e4e7ec;
+    transform: translateY(-2px);
+}
+
+.success-box {
+    text-align: center;
+}
+
+.success-box .fa-check-circle {
+    font-size: 72px;
+    color: #28a745;
+    margin-bottom: 15px;
+}
+
+.success-box h2 {
+    font-size: 32px;
+    color: #333;
+    margin-bottom: 8px;
+}
+
+.success-box > p {
+    font-size: 18px;
+    color: #666;
+    margin-bottom: 25px;
+}
+
+.details {
+    background: #f8f9fa;
+    border-radius: 10px;
+    padding: 18px 22px;
+    margin: 20px 0 30px;
+    text-align: left;
+}
+
+.details p {
+    margin: 6px 0;
+    font-size: 15px;
+    color: #555;
+    display: flex;
+    justify-content: space-between;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 6px;
+}
+
+.details p:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+}
+
+.details strong {
+    color: #333;
+}
+
+.actions {
+    display: flex;
+    gap: 15px;
+    flex-wrap: wrap;
+}
+
+.actions .btn-primary,
+.actions .btn-secondary {
+    flex: 1;
+    min-width: 160px;
+}
+
+
+@media (max-width: 768px) {
+    .payment-box,
+    .success-box {
+        padding: 30px 25px;
+        margin: 0 15px;
+    }
+
+    .payment-box h2,
+    .success-box h2 {
+        font-size: 24px;
+    }
+
+    .booking-summary {
+        padding: 15px 18px;
+    }
+
+    .booking-summary p {
+        font-size: 14px;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 2px;
+    }
+
+    .btn-primary,
+    .btn-secondary {
+        font-size: 15px;
+        padding: 12px 20px;
+    }
+
+    .details p {
+        font-size: 14px;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 2px;
+    }
+
+    .actions {
+        flex-direction: column;
+    }
+
+    .actions .btn-primary,
+    .actions .btn-secondary {
+        width: 100%;
+    }
+}
+
+@media (max-width: 576px) {
+    .payment-box,
+    .success-box {
+        padding: 20px 18px;
+    }
+
+    .payment-box h2,
+    .success-box h2 {
+        font-size: 20px;
+    }
+
+    .success-box .fa-check-circle {
+        font-size: 56px;
+    }
+}

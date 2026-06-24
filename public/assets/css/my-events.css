@@ -211,6 +211,20 @@
     box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
 }
 
+.btn-delete {
+    background: #dc3545;
+    color: white;
+    padding: 6px 14px;
+    border-radius: 5px;
+    text-decoration: none;
+    font-size: 13px;
+    transition: background 0.3s;
+}
+
+.btn-delete:hover {
+    background: #c82333;
+}
+
 @media (max-width: 768px) {
     .page-header {
         flex-direction: column;

@@ -101,6 +101,9 @@ $events = $stmt->fetchAll();
                                 <div class="event-actions">
                                     <a href="event-details.php?id=<?php echo $event['id']; ?>" class="btn-view">View Details</a>
                                     <a href="edit-event.php?id=<?php echo $event['id']; ?>" class="btn-edit"><i class="fa-solid fa-file-pen"></i> Edit</a>
+                                    <a href="delete-event.php?id=<?php echo $event['id']; ?>" class="btn-delete" onclick="return confirm('Delete this event?');">
+                                        <i class="fas fa-trash"></i> Delete
+                                    </a>
                                 </div>
                             </div>
                         </div>

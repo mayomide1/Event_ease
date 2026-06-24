@@ -55,8 +55,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['confirm_payment'])) {
         ");
         $update->execute([$booking_id]);
 
-        // Optionally, decrease available tickets in events table
-        // UPDATE events SET tickets_sold = tickets_sold + ticket_quantity WHERE id = ?
+         // Update tickets_sold
+        $stmt = $db->prepare("
+            UPDATE events 
+            SET tickets_sold = tickets_sold + (
+                SELECT ticket_quantity FROM bookings WHERE id = ?
+            )
+            WHERE id = (
+                SELECT event_id FROM bookings WHERE id = ?
+            )
+        ");
+        $stmt->execute([$booking_id, $booking_id]);
 
         $_SESSION['success'] = "Payment successful! Your booking is confirmed.";
         header('Location: booking-confirmation.php?ref=' . $booking['booking_reference']);
@@ -72,7 +81,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['confirm_payment'])) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Payment - EventEase</title>
-    <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="stylesheet" href="assets/css/navbar.css">
+    <link rel="stylesheet" href="assets/css/footer.css">
     <link rel="stylesheet" href="assets/css/payment.css">
 </head>
 <body>

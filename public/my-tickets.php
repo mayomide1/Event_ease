@@ -189,9 +189,9 @@ function generateSeat($index) {
                                 <!-- Ticket Footer -->
                                 <div class="ticket-footer">
                                     <div class="ticket-actions">
-                                        <a href="download-ticket.php?ref=<?php echo $ticket_code; ?>" class="btn-download">
-                                            <i class="fas fa-download"></i> Download Ticket
-                                        </a>
+                                            <a href="download-ticket.php?ref=<?php echo $ticket['booking_reference']; ?>" class="btn-download">
+                                                <i class="fas fa-download"></i> Download Ticket
+                                            </a>
                                         <button class="btn-print" onclick="window.print()">
                                             <i class="fas fa-print"></i> Print
                                         </button>
