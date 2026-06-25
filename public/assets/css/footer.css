@@ -110,10 +110,5 @@
 @media (max-width: 768px) {
      .footer-grid {
         grid-template-columns: 1fr 1fr;
-    } 
-    
-    .footer-newsletter button,
-    .footer-newsletter input{
-        width: 95%;
-    }
+    }   
 }

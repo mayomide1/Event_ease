@@ -192,6 +192,7 @@
 @media (max-width: 768px) {
     .payment-box,
     .success-box {
+        width: 100%;
         padding: 30px 25px;
         margin: 0 15px;
     }

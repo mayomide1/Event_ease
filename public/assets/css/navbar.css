@@ -156,7 +156,7 @@ ul {
     .nav-menu {
         position: absolute;
         top: 70px;
-        left: -100%;
+        left: -120%;
         width: 100%;
         height: calc(100vh - 70px);
         background: #fff;
@@ -169,7 +169,7 @@ ul {
     }
 
     .nav-menu.active {
-        left: 0;
+        left: 0 !important;
     }
 
     .nav-menu li a {
